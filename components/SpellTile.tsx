@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Easing, Image, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { ClipPath, Defs, Path } from 'react-native-svg';
 import { SPELLS, SpellId } from '../data/spells';
 import { useNow } from '../hooks/useNow';
@@ -94,21 +94,24 @@ export default function SpellTile({
         accessibilityLabel={label ?? SPELLS[spell].name}
         accessibilityState={{ busy: running, selected }}
       >
-        <Svg width={art} height={art}>
-          {running ? (
-            <>
-              <SpellArtLayer spell={spell} size={art} grey />
-              <Defs>
-                <ClipPath key={stepClipId} id={stepClipId}>
-                  <Path d={piePath(degrees / 360, art)} />
-                </ClipPath>
-              </Defs>
-              <SpellArtLayer spell={spell} size={art} clipPath={`url(#${stepClipId})`} />
-            </>
-          ) : (
-            <SpellArtLayer spell={spell} size={art} />
-          )}
-        </Svg>
+        {/* Plain Images for the full icons: react-native-svg's own image loading on Android
+            intermittently fails ("fetchDecodedImage failed") while a tile re-renders every
+            100ms, leaving the grey layer blank. SVG only draws the clipped colour sweep, whose
+            image is already in the shared image cache from the ready state. */}
+        <Image
+          source={running ? SPELLS[spell].iconGrey : SPELLS[spell].icon}
+          style={{ width: art, height: art }}
+        />
+        {running && (
+          <Svg width={art} height={art} style={StyleSheet.absoluteFill}>
+            <Defs>
+              <ClipPath key={stepClipId} id={stepClipId}>
+                <Path d={piePath(degrees / 360, art)} />
+              </ClipPath>
+            </Defs>
+            <SpellArtLayer spell={spell} size={art} clipPath={`url(#${stepClipId})`} />
+          </Svg>
+        )}
         {running && (
           <Text style={[styles.time, { lineHeight: art, fontSize: Math.round(size * 0.27) }]} pointerEvents="none">
             {formatRemaining(remaining, format)}
