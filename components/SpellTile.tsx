@@ -1,9 +1,8 @@
 import { useEffect, useId } from 'react';
-import { Animated, Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { ClipPath, Defs, Path } from 'react-native-svg';
 import { SPELLS, SpellId } from '../data/spells';
 import { useNow } from '../hooks/useNow';
-import { useWiggle } from '../hooks/useWiggle';
 import { Timer } from '../state/store';
 import { SpellArtLayer } from './SpellArt';
 
@@ -14,7 +13,6 @@ interface Props {
   timer?: Timer;
   size?: number;
   label?: string;
-  wiggle?: boolean; // edit mode
   selected?: boolean; // edit mode: slot chosen for a swap
   onPress?: () => void;
   onExpire?: () => void;
@@ -43,13 +41,11 @@ export default function SpellTile({
   timer,
   size = TILE_SIZE,
   label,
-  wiggle = false,
   selected = false,
   onPress,
   onExpire,
 }: Props) {
   const now = useNow(!!timer);
-  const rotate = useWiggle(wiggle);
   const clipId = 'c' + useId().replace(/[^a-zA-Z0-9]/g, '');
 
   const remaining = timer ? (timer.endsAt - now) / 1000 : 0;
@@ -65,7 +61,7 @@ export default function SpellTile({
   }, [timer, remaining, onExpire]);
 
   return (
-    <Animated.View style={[styles.frame, selected && styles.selected, wiggle && { transform: [{ rotate }] }]}>
+    <View style={[styles.frame, selected && styles.selected]}>
       <Pressable
         onPress={onPress}
         style={[styles.tile, { width: size, height: size }]}
@@ -94,7 +90,7 @@ export default function SpellTile({
           </Text>
         )}
       </Pressable>
-    </Animated.View>
+    </View>
   );
 }
 

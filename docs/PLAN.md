@@ -46,7 +46,7 @@ Only one screen, with two overlays.
 
 ### 3.4 Edit mode (pencil)
 - Pencil toggles edit mode (icon highlighted while active).
-- Tiles gently wiggle to show they're editable.
+- No wiggle: tiles stay still in edit mode (the user removed the mockup's wiggle). The highlighted pencil, the pool and the hint text show you're editing.
 - The **spell pool** appears at the bottom: all 9 SR spells.
 - Tap a slot to select it (blue outline) → tap a spell in the pool to swap it in. Swapping resets that slot's timer.
 - Tap pencil again to exit. Loadout is saved to storage.
@@ -118,7 +118,7 @@ assets/spells/*.png
 1. **Scaffold** — `npx create-expo-app` with TypeScript, run on Android emulator and web.
 2. **Static layout** — header, 5 rows, placeholder tiles. Match the mockup.
 3. **SpellTile + timer** — grey layer, clockwise colour sweep (SVG), black countdown, `endsAt`-based ticking (~10fps is plenty), tap-again reset.
-4. **Edit mode** — pencil toggle, wiggle, spell pool, select-then-swap.
+4. **Edit mode** — pencil toggle, spell pool, select-then-swap.
 5. **Settings sheet** — editable cooldowns, reset defaults.
 6. **Persistence** — AsyncStorage for loadout, cooldowns and timers.
 7. **Polish** — real Data Dragon icons, haptics, keep-awake, "ready" pulse, app icon and splash.

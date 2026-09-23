@@ -21,7 +21,6 @@ export default function RoleRow({ role }: { role: Role }) {
             spell={spell}
             label={`${role} ${SPELLS[spell].name}`}
             timer={state.timers[key]}
-            wiggle={editing}
             selected={editing && state.selectedSlot === key}
             onPress={() => dispatch({ type: 'tapSlot', key, spell, now: Date.now() })}
             onExpire={() => dispatch({ type: 'clearTimer', key })}
