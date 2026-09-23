@@ -84,6 +84,21 @@ describe('loadState / saveState', () => {
     expect(loaded.selectedSlot).toBeNull();
   });
 
+  it('stores only cooldowns that differ from the defaults', async () => {
+    const s = reducer(initialState, { type: 'setCooldown', spell: 'flash', seconds: 270 });
+    await saveState(s);
+    const raw = JSON.parse((await AsyncStorage.getItem(STORAGE_KEY))!);
+    expect(raw.cooldowns).toEqual({ flash: 270 });
+  });
+
+  it('a spell the user never changed picks up a new default after an update', async () => {
+    // A save made when Teleport's default was 360 and Flash was overridden.
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ cooldowns: { flash: 270 } }));
+    const loaded = await loadState(NOW);
+    expect(loaded.cooldowns.flash).toBe(270);
+    expect(loaded.cooldowns.teleport).toBe(300);
+  });
+
   it('returns defaults when nothing is saved', async () => {
     expect(await loadState(NOW)).toEqual(initialState);
   });

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ROLES, SPELLS, SpellId } from '../data/spells';
-import { AppState, initialState, isValidCooldown, SlotKey, Timer } from './store';
+import { AppState, defaultCooldowns, initialState, isValidCooldown, SlotKey, Timer } from './store';
 
 // Bump the version if the saved shape changes incompatibly; old saves are then ignored.
 export const STORAGE_KEY = 'summoner-spell-tracker:v1';
@@ -59,9 +59,15 @@ export async function loadState(now = Date.now()): Promise<AppState> {
 }
 
 export async function saveState(state: AppState): Promise<void> {
+  // Only cooldowns the user changed are stored, so a new default (e.g. after a patch)
+  // reaches everyone who hasn't overridden that spell.
+  const defaults = defaultCooldowns();
+  const overrides = Object.fromEntries(
+    Object.entries(state.cooldowns).filter(([spell, seconds]) => seconds !== defaults[spell as SpellId]),
+  );
   const saved: Saved = {
     loadout: state.loadout,
-    cooldowns: state.cooldowns,
+    cooldowns: overrides as AppState['cooldowns'],
     timers: state.timers,
     timeFormat: state.timeFormat,
   };

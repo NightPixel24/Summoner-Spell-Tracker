@@ -67,7 +67,7 @@ Only one screen, with two overlays.
 | id | Name | Default cooldown (s) |
 |---|---|---|
 | flash | Flash | 300 |
-| teleport | Teleport | 360 |
+| teleport | Teleport | 300 |
 | ignite | Ignite | 180 |
 | heal | Heal | 240 |
 | barrier | Barrier | 180 |
@@ -76,7 +76,7 @@ Only one screen, with two overlays.
 | cleanse | Cleanse | 240 |
 | smite | Smite | 90 |
 
-**Verify these against the current patch before release** (Riot tweaks them; Teleport also upgrades to Unleashed Teleport mid-game). Keep them in one `spells.ts` file so they are easy to update. Users can override any of them in Settings anyway.
+Checked against patch 16.18.1 and the League wiki on 2026-09-24 (Teleport changed from 360 to 300). Smite's 90s is its charge recharge; Riot lists 15s between charges. **Re-verify these after big patches** (Riot tweaks them; Teleport also upgrades to Unleashed Teleport mid-game). Keep them in one `spells.ts` file so they are easy to update. Users can override any of them in Settings anyway.
 
 ### 4.2 Icons
 - Use the official summoner spell icons from Riot's **Data Dragon** CDN:

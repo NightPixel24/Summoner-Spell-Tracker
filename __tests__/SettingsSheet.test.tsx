@@ -23,7 +23,7 @@ describe('Settings sheet', () => {
     await openSettings();
     expect(screen.getByText('Cooldowns (seconds)')).toBeOnTheScreen();
     expect(screen.getByLabelText('Flash cooldown in seconds')).toHaveDisplayValue('300');
-    expect(screen.getByLabelText('Teleport cooldown in seconds')).toHaveDisplayValue('360');
+    expect(screen.getByLabelText('Teleport cooldown in seconds')).toHaveDisplayValue('300');
     expect(screen.getByLabelText('Smite cooldown in seconds')).toHaveDisplayValue('90');
     expect(screen.getByText(RIOT_DISCLAIMER)).toBeOnTheScreen();
   });

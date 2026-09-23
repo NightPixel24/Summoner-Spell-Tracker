@@ -1,7 +1,9 @@
 import { ImageSourcePropType } from 'react-native';
 
-// Summoner's Rift spell pool. Verify cooldowns against the current patch before release
-// (`node scripts/fetch-spell-icons.mjs` prints Riot's values and refreshes the icons).
+// Summoner's Rift spell pool. Default cooldowns checked against patch 16.18.1 (Data Dragon)
+// and the League wiki on 2026-09-24. `node scripts/fetch-spell-icons.mjs` prints Riot's
+// current values and refreshes the icons. Smite is the exception: Riot lists its 15s
+// between-charges cooldown, but the 90s charge recharge is what's worth tracking.
 
 export type SpellId =
   | 'flash'
@@ -36,7 +38,7 @@ export const SPELLS: Record<SpellId, Spell> = {
   teleport: {
     id: 'teleport',
     name: 'Teleport',
-    cooldown: 360,
+    cooldown: 300,
     icon: require('../assets/spells/teleport.png'),
     iconGrey: require('../assets/spells/teleport-grey.png'),
   },

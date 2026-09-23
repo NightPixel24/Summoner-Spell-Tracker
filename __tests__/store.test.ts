@@ -135,7 +135,7 @@ describe('cooldown settings', () => {
   it('setCooldown stores a new value for that spell only', () => {
     const next = reducer(initialState, { type: 'setCooldown', spell: 'flash', seconds: 270 });
     expect(next.cooldowns.flash).toBe(270);
-    expect(next.cooldowns.teleport).toBe(360);
+    expect(next.cooldowns.teleport).toBe(300);
   });
 
   it.each([0, -5, 12.5, NaN, MAX_COOLDOWN + 1])('setCooldown ignores invalid value %p', (seconds) => {
