@@ -1,3 +1,4 @@
+import { useKeepAwake } from 'expo-keep-awake';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
@@ -26,10 +27,12 @@ export default function App() {
 function Tracker() {
   const { state, dispatch } = useStore();
   const editing = state.mode === 'edit';
+  const timersRunning = Object.keys(state.timers).length > 0;
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
+      {timersRunning && <KeepScreenOn />}
       <Header
         editing={editing}
         onEdit={() => dispatch({ type: 'toggleEdit' })}
@@ -45,6 +48,12 @@ function Tracker() {
       <SettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </ScrollView>
   );
+}
+
+// Stops the phone locking mid-game while any cooldown is counting down.
+function KeepScreenOn() {
+  useKeepAwake('spell-timers');
+  return null;
 }
 
 const styles = StyleSheet.create({

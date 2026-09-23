@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Role, SPELLS } from '../data/spells';
 import { Slot, slotKey, useStore } from '../state/store';
+import { readyFeedback, tapFeedback } from '../lib/feedback';
 import SpellTile from './SpellTile';
 
 const SLOTS: Slot[] = [0, 1];
@@ -22,8 +23,14 @@ export default function RoleRow({ role }: { role: Role }) {
             label={`${role} ${SPELLS[spell].name}`}
             timer={state.timers[key]}
             selected={editing && state.selectedSlot === key}
-            onPress={() => dispatch({ type: 'tapSlot', key, spell, now: Date.now() })}
-            onExpire={() => dispatch({ type: 'clearTimer', key })}
+            onPress={() => {
+              tapFeedback();
+              dispatch({ type: 'tapSlot', key, spell, now: Date.now() });
+            }}
+            onExpire={() => {
+              readyFeedback();
+              dispatch({ type: 'clearTimer', key });
+            }}
           />
         );
       })}

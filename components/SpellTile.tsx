@@ -1,5 +1,5 @@
-import { useEffect, useId } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useId, useRef } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { ClipPath, Defs, Path } from 'react-native-svg';
 import { SPELLS, SpellId } from '../data/spells';
 import { useNow } from '../hooks/useNow';
@@ -56,12 +56,23 @@ export default function SpellTile({
   const degrees = Math.max(0, Math.floor(elapsed * 360));
   const stepClipId = `${clipId}_${degrees}`;
 
+  // "Just came up": a quick grow-and-flash when a cooldown runs out on its own.
+  const pulse = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
-    if (timer && remaining <= 0) onExpire?.();
-  }, [timer, remaining, onExpire]);
+    if (!timer || remaining > 0) return;
+    onExpire?.();
+    pulse.setValue(0);
+    Animated.sequence([
+      Animated.timing(pulse, { toValue: 1, duration: 140, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 0, duration: 360, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+    ]).start();
+  }, [timer, remaining, onExpire, pulse]);
+
+  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] });
 
   return (
-    <View style={[styles.frame, selected && styles.selected]}>
+    <Animated.View style={[styles.frame, selected && styles.selected, { transform: [{ scale }] }]}>
       <Pressable
         onPress={onPress}
         style={[styles.tile, { width: size, height: size }]}
@@ -89,8 +100,9 @@ export default function SpellTile({
             {formatRemaining(remaining)}
           </Text>
         )}
+        <Animated.View style={[styles.flash, { opacity: pulse }]} pointerEvents="none" />
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -107,6 +119,14 @@ const styles = StyleSheet.create({
   tile: {
     borderRadius: 4,
     overflow: 'hidden',
+  },
+  flash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.55)',
   },
   time: {
     position: 'absolute',
