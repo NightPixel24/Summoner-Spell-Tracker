@@ -1,8 +1,9 @@
 import { useEffect, useId } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { ClipPath, Defs, Path } from 'react-native-svg';
 import { SPELLS, SpellId } from '../data/spells';
 import { useNow } from '../hooks/useNow';
+import { useWiggle } from '../hooks/useWiggle';
 import { Timer } from '../state/store';
 import { SpellArtLayer } from './SpellArt';
 
@@ -13,6 +14,8 @@ interface Props {
   timer?: Timer;
   size?: number;
   label?: string;
+  wiggle?: boolean; // edit mode
+  selected?: boolean; // edit mode: slot chosen for a swap
   onPress?: () => void;
   onExpire?: () => void;
 }
@@ -35,8 +38,18 @@ function piePath(fraction: number, size: number) {
   return `M ${c} ${c} L ${c} ${c - r} A ${r} ${r} 0 ${largeArc} 1 ${x} ${y} Z`;
 }
 
-export default function SpellTile({ spell, timer, size = TILE_SIZE, label, onPress, onExpire }: Props) {
+export default function SpellTile({
+  spell,
+  timer,
+  size = TILE_SIZE,
+  label,
+  wiggle = false,
+  selected = false,
+  onPress,
+  onExpire,
+}: Props) {
   const now = useNow(!!timer);
+  const rotate = useWiggle(wiggle);
   const clipId = 'c' + useId().replace(/[^a-zA-Z0-9]/g, '');
 
   const remaining = timer ? (timer.endsAt - now) / 1000 : 0;
@@ -52,38 +65,49 @@ export default function SpellTile({ spell, timer, size = TILE_SIZE, label, onPre
   }, [timer, remaining, onExpire]);
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.tile, { width: size, height: size }]}
-      accessibilityRole="button"
-      accessibilityLabel={label ?? SPELLS[spell].name}
-      accessibilityState={{ busy: running }}
-    >
-      <Svg width={size} height={size}>
-        {running ? (
-          <>
-            <SpellArtLayer spell={spell} size={size} grey />
-            <Defs>
-              <ClipPath key={stepClipId} id={stepClipId}>
-                <Path d={piePath(degrees / 360, size)} />
-              </ClipPath>
-            </Defs>
-            <SpellArtLayer spell={spell} size={size} clipPath={`url(#${stepClipId})`} />
-          </>
-        ) : (
-          <SpellArtLayer spell={spell} size={size} />
+    <Animated.View style={[styles.frame, selected && styles.selected, wiggle && { transform: [{ rotate }] }]}>
+      <Pressable
+        onPress={onPress}
+        style={[styles.tile, { width: size, height: size }]}
+        accessibilityRole="button"
+        accessibilityLabel={label ?? SPELLS[spell].name}
+        accessibilityState={{ busy: running, selected }}
+      >
+        <Svg width={size} height={size}>
+          {running ? (
+            <>
+              <SpellArtLayer spell={spell} size={size} grey />
+              <Defs>
+                <ClipPath key={stepClipId} id={stepClipId}>
+                  <Path d={piePath(degrees / 360, size)} />
+                </ClipPath>
+              </Defs>
+              <SpellArtLayer spell={spell} size={size} clipPath={`url(#${stepClipId})`} />
+            </>
+          ) : (
+            <SpellArtLayer spell={spell} size={size} />
+          )}
+        </Svg>
+        {running && (
+          <Text style={[styles.time, { lineHeight: size }]} pointerEvents="none">
+            {formatRemaining(remaining)}
+          </Text>
         )}
-      </Svg>
-      {running && (
-        <Text style={[styles.time, { lineHeight: size }]} pointerEvents="none">
-          {formatRemaining(remaining)}
-        </Text>
-      )}
-    </Pressable>
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  frame: {
+    borderRadius: 4,
+  },
+  selected: {
+    outlineColor: '#2f80ed',
+    outlineStyle: 'solid',
+    outlineWidth: 3,
+    outlineOffset: 3,
+  },
   tile: {
     borderRadius: 4,
     overflow: 'hidden',

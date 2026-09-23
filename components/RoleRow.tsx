@@ -7,6 +7,7 @@ const SLOTS: Slot[] = [0, 1];
 
 export default function RoleRow({ role }: { role: Role }) {
   const { state, dispatch } = useStore();
+  const editing = state.mode === 'edit';
 
   return (
     <View style={styles.row}>
@@ -20,6 +21,8 @@ export default function RoleRow({ role }: { role: Role }) {
             spell={spell}
             label={`${role} ${SPELLS[spell].name}`}
             timer={state.timers[key]}
+            wiggle={editing}
+            selected={editing && state.selectedSlot === key}
             onPress={() => dispatch({ type: 'tapSlot', key, spell, now: Date.now() })}
             onExpire={() => dispatch({ type: 'clearTimer', key })}
           />

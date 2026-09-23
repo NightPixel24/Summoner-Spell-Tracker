@@ -17,6 +17,7 @@ export default function Header({ editing = false, onEdit, onSettings }: Props) {
           style={[styles.iconBtn, editing && styles.iconBtnActive]}
           accessibilityRole="button"
           accessibilityLabel="Edit spells"
+          accessibilityState={{ selected: editing }}
         >
           <Svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
             <Path d="M12 20h9" />

@@ -64,3 +64,49 @@ describe('clearTimer', () => {
     expect(reducer(initialState, { type: 'clearTimer', key: 'SUP-1' })).toBe(initialState);
   });
 });
+
+describe('edit mode', () => {
+  const editing = reducer(initialState, { type: 'toggleEdit' });
+
+  it('toggleEdit switches modes and clears any selection', () => {
+    expect(editing.mode).toBe('edit');
+    const selected = reducer(editing, { type: 'tapSlot', key: 'TOP-1', spell: 'teleport', now: NOW });
+    const back = reducer(selected, { type: 'toggleEdit' });
+    expect(back.mode).toBe('track');
+    expect(back.selectedSlot).toBeNull();
+  });
+
+  it('tapping a slot selects it instead of starting a timer, and tapping again deselects', () => {
+    const selected = reducer(editing, { type: 'tapSlot', key: 'TOP-1', spell: 'teleport', now: NOW });
+    expect(selected.selectedSlot).toBe('TOP-1');
+    expect(selected.timers).toEqual({});
+    const other = reducer(selected, { type: 'tapSlot', key: 'MID-0', spell: 'flash', now: NOW });
+    expect(other.selectedSlot).toBe('MID-0');
+    const none = reducer(other, { type: 'tapSlot', key: 'MID-0', spell: 'flash', now: NOW });
+    expect(none.selectedSlot).toBeNull();
+  });
+
+  it('assignSpell swaps the spell into the selected slot and keeps it selected', () => {
+    const selected = reducer(editing, { type: 'tapSlot', key: 'TOP-1', spell: 'teleport', now: NOW });
+    const next = reducer(selected, { type: 'assignSpell', spell: 'ignite' });
+    expect(next.loadout.TOP).toEqual(['flash', 'ignite']);
+    expect(next.loadout.MID).toEqual(DEFAULT_LOADOUT.MID);
+    expect(next.selectedSlot).toBe('TOP-1');
+  });
+
+  it('assignSpell resets the swapped slot timer but leaves other timers running', () => {
+    let s = reducer(initialState, { type: 'tapSlot', key: 'TOP-1', spell: 'teleport', now: NOW });
+    s = reducer(s, { type: 'tapSlot', key: 'TOP-0', spell: 'flash', now: NOW });
+    s = reducer(s, { type: 'toggleEdit' });
+    s = reducer(s, { type: 'tapSlot', key: 'TOP-1', spell: 'teleport', now: NOW });
+    s = reducer(s, { type: 'assignSpell', spell: 'barrier' });
+    expect(s.timers['TOP-1']).toBeUndefined();
+    expect(s.timers['TOP-0']).toBeDefined();
+  });
+
+  it('assignSpell does nothing with no slot selected, or outside edit mode', () => {
+    expect(reducer(editing, { type: 'assignSpell', spell: 'ghost' })).toBe(editing);
+    const tracking = { ...initialState, selectedSlot: 'TOP-0' as const };
+    expect(reducer(tracking, { type: 'assignSpell', spell: 'ghost' })).toBe(tracking);
+  });
+});
