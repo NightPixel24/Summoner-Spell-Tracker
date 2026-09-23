@@ -1,7 +1,7 @@
 import { useEffect, useId } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { ClipPath, Defs, Path } from 'react-native-svg';
-import { SpellId } from '../data/spells';
+import { SPELLS, SpellId } from '../data/spells';
 import { useNow } from '../hooks/useNow';
 import { Timer } from '../state/store';
 import { SpellArtLayer } from './SpellArt';
@@ -12,6 +12,7 @@ interface Props {
   spell: SpellId;
   timer?: Timer;
   size?: number;
+  label?: string;
   onPress?: () => void;
   onExpire?: () => void;
 }
@@ -34,7 +35,7 @@ function piePath(fraction: number, size: number) {
   return `M ${c} ${c} L ${c} ${c - r} A ${r} ${r} 0 ${largeArc} 1 ${x} ${y} Z`;
 }
 
-export default function SpellTile({ spell, timer, size = TILE_SIZE, onPress, onExpire }: Props) {
+export default function SpellTile({ spell, timer, size = TILE_SIZE, label, onPress, onExpire }: Props) {
   const now = useNow(!!timer);
   const clipId = 'c' + useId().replace(/[^a-zA-Z0-9]/g, '');
 
@@ -55,6 +56,7 @@ export default function SpellTile({ spell, timer, size = TILE_SIZE, onPress, onE
       onPress={onPress}
       style={[styles.tile, { width: size, height: size }]}
       accessibilityRole="button"
+      accessibilityLabel={label ?? SPELLS[spell].name}
       accessibilityState={{ busy: running }}
     >
       <Svg width={size} height={size}>

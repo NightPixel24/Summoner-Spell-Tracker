@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { Role } from '../data/spells';
+import { Role, SPELLS } from '../data/spells';
 import { Slot, slotKey, useStore } from '../state/store';
 import SpellTile from './SpellTile';
 
@@ -18,6 +18,7 @@ export default function RoleRow({ role }: { role: Role }) {
           <SpellTile
             key={key}
             spell={spell}
+            label={`${role} ${SPELLS[spell].name}`}
             timer={state.timers[key]}
             onPress={() => dispatch({ type: 'tapSlot', key, spell, now: Date.now() })}
             onExpire={() => dispatch({ type: 'clearTimer', key })}
