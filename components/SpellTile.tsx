@@ -99,6 +99,7 @@ export default function SpellTile({
             100ms, leaving the grey layer blank. SVG only draws the clipped colour sweep, whose
             image is already in the shared image cache from the ready state. */}
         <Image
+          testID="spell-icon"
           source={running ? SPELLS[spell].iconGrey : SPELLS[spell].icon}
           style={{ width: art, height: art }}
         />

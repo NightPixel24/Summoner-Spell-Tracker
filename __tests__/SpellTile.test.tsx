@@ -1,5 +1,6 @@
 import { act, render, screen, userEvent } from '@testing-library/react-native';
 import SpellTile, { formatRemaining } from '../components/SpellTile';
+import { SPELLS } from '../data/spells';
 
 describe('formatRemaining', () => {
   it.each([
@@ -92,5 +93,15 @@ describe('SpellTile', () => {
     await render(<SpellTile spell="heal" label="BOT Heal" onPress={onPress} />);
     await user.press(screen.getByRole('button', { name: 'BOT Heal' }));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  // Regression: react-native-svg's image loader on Android intermittently left the grey
+  // layer blank, so full icons must be plain React Native Images.
+  it('draws the full icon as a plain Image: colour when ready, grey while on cooldown', async () => {
+    const { rerender } = await render(<SpellTile spell="barrier" label="MID Barrier" />);
+    expect(screen.getByTestId('spell-icon').props.source).toBe(SPELLS.barrier.icon);
+
+    await rerender(<SpellTile spell="barrier" label="MID Barrier" timer={{ endsAt: NOW + 180_000, total: 180 }} />);
+    expect(screen.getByTestId('spell-icon').props.source).toBe(SPELLS.barrier.iconGrey);
   });
 });
