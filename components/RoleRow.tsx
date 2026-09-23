@@ -1,18 +1,30 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { Role, SpellId } from '../data/spells';
+import { Role } from '../data/spells';
+import { Slot, slotKey, useStore } from '../state/store';
 import SpellTile from './SpellTile';
 
-interface Props {
-  role: Role;
-  spells: [SpellId, SpellId];
-}
+const SLOTS: Slot[] = [0, 1];
 
-export default function RoleRow({ role, spells }: Props) {
+export default function RoleRow({ role }: { role: Role }) {
+  const { state, dispatch } = useStore();
+
   return (
     <View style={styles.row}>
       <Text style={styles.role}>{role}</Text>
-      <SpellTile spell={spells[0]} />
-      <SpellTile spell={spells[1]} />
+      {SLOTS.map((slot) => {
+        const key = slotKey(role, slot);
+        const spell = state.loadout[role][slot];
+        return (
+          <SpellTile
+            key={key}
+            spell={spell}
+            timer={state.timers[key]}
+            onPress={() => dispatch({ type: 'startTimer', key, spell, now: Date.now() })}
+            onLongPress={() => dispatch({ type: 'clearTimer', key })}
+            onExpire={() => dispatch({ type: 'clearTimer', key })}
+          />
+        );
+      })}
     </View>
   );
 }
