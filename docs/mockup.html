@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Summoner Spell Tracker – Mockup</title>
+<style>
+  :root{
+    --bg:#e9ecef; --phone:#ffffff; --ink:#111; --muted:#6b7280; --line:#1f3b4d;
+    --accent:#2f80ed; --panel:#f4f5f7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink);
+       display:flex;flex-wrap:wrap;gap:32px;justify-content:center;align-items:flex-start;padding:24px 16px}
+  .notes{max-width:340px;font-size:14px;line-height:1.5}
+  .notes h2{margin-top:0}
+  .notes code{background:#fff;padding:1px 4px;border-radius:3px}
+
+  /* Phone frame */
+  .phone{width:360px;max-width:100%;min-height:680px;background:var(--phone);border:2px solid var(--line);
+         border-radius:6px;padding:28px 24px;position:relative;overflow:hidden}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+  h1{font-size:20px;line-height:1.25;margin:0;font-weight:800;letter-spacing:.5px}
+  .icons{display:flex;gap:10px}
+  .icon-btn{width:40px;height:40px;border:none;background:transparent;border-radius:8px;cursor:pointer;display:grid;place-items:center}
+  .icon-btn.active{background:#dbe7fb}
+  .icon-btn svg{width:30px;height:30px}
+
+  .row{display:grid;grid-template-columns:70px 64px 64px;column-gap:24px;align-items:center;margin-bottom:22px}
+  .role{font-weight:800;font-size:18px;padding-left:4px}
+
+  /* Spell tile */
+  .spell{width:64px;height:64px;position:relative;cursor:pointer;user-select:none;-webkit-user-select:none;
+         border-radius:4px;touch-action:manipulation}
+  .spell .layer{position:absolute;inset:0;border-radius:4px}
+  .spell .grey{filter:grayscale(1) brightness(.55)}
+  .spell .color{ -webkit-mask-image:conic-gradient(#000 var(--p,360deg), transparent 0);
+                 mask-image:conic-gradient(#000 var(--p,360deg), transparent 0)}
+  .spell .time{position:absolute;inset:0;display:none;place-items:center;font-weight:900;font-size:20px;color:#000;
+               text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff}
+  .spell.cd .time{display:grid}
+  .spell.selected{outline:3px solid var(--accent);outline-offset:3px}
+  .editing .spell{animation:wiggle .35s ease-in-out infinite alternate}
+  @keyframes wiggle{from{transform:rotate(-1.5deg)}to{transform:rotate(1.5deg)}}
+
+  /* Spell pool */
+  .pool{display:none;margin-top:18px;border-top:1px dashed #cbd5e1;padding-top:14px}
+  .editing .pool{display:block}
+  .pool p{margin:0 0 8px;font-size:12px;color:var(--muted)}
+  .pool-grid{display:grid;grid-template-columns:repeat(5,44px);gap:8px}
+  .pool .spell{width:44px;height:44px;animation:none}
+
+  /* Settings sheet */
+  .sheet{position:absolute;inset:auto 0 0 0;background:var(--panel);border-top:2px solid var(--line);
+         transform:translateY(100%);transition:transform .25s;padding:18px 20px;max-height:85%;overflow:auto}
+  .sheet.open{transform:none}
+  .sheet h3{margin:0 0 4px}
+  .sheet .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+  .set-row{display:grid;grid-template-columns:32px 1fr 80px;gap:10px;align-items:center;margin-bottom:8px}
+  .set-row .spell{width:32px;height:32px;cursor:default}
+  .set-row input{width:100%;padding:6px;border:1px solid #cbd5e1;border-radius:4px;font-size:14px;text-align:right}
+  .sheet-actions{display:flex;gap:8px;margin-top:12px}
+  .sheet-actions button{flex:1;padding:10px;border:none;border-radius:6px;font-weight:700;cursor:pointer}
+  .primary{background:var(--accent);color:#fff}
+  .ghost{background:#fff;border:1px solid #cbd5e1 !important}
+  .hint{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <header>
+    <h1>SUMMONER<br>SPELL TRACKER</h1>
+    <div class="icons">
+      <button class="icon-btn" id="editBtn" aria-label="Edit spells" title="Edit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
+      <button class="icon-btn" id="setBtn" aria-label="Settings" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="rows"></div>
+
+  <div class="pool">
+    <p>Edit mode: tap a slot above, then tap a spell below to swap it in.</p>
+    <div class="pool-grid" id="pool"></div>
+  </div>
+
+  <div class="hint" id="hint">Tap a spell to start its cooldown · long-press to reset</div>
+
+  <div class="sheet" id="sheet">
+    <h3>Cooldowns (seconds)</h3>
+    <p class="sub">Summoner's Rift only. Changes apply to the next timer you start.</p>
+    <div id="setList"></div>
+    <div class="sheet-actions">
+      <button class="ghost" id="resetDefaults">Reset defaults</button>
+      <button class="primary" id="closeSheet">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="notes">
+  <h2>How this mockup behaves</h2>
+  <ul>
+    <li><b>Tap a spell</b> → icon goes grey, colour sweeps back clockwise like a clock hand, black countdown on top.</li>
+    <li><b>Long-press</b> a running timer → reset to ready.</li>
+    <li><b>Pencil</b> → edit mode (tiles wiggle, spell pool appears). Tap a slot, then a pool spell to swap. A swapped slot's timer resets.</li>
+    <li><b>Cog</b> → settings sheet to edit each spell's cooldown.</li>
+  </ul>
+  <p>Icons here are placeholder tiles. The real app loads the official summoner spell icons from Riot's Data Dragon CDN.</p>
+</div>
+
+<script>
+const DEFAULTS = {
+  flash:{name:"Flash",cd:300,c1:"#d9f25a",c2:"#3a5f0b",g:"F"},
+  ignite:{name:"Ignite",cd:180,c1:"#ff9b3d",c2:"#8a1204",g:"I"},
+  teleport:{name:"Teleport",cd:360,c1:"#d58cff",c2:"#4b1a6b",g:"T"},
+  heal:{name:"Heal",cd:240,c1:"#9ff09a",c2:"#1f6b2a",g:"H"},
+  barrier:{name:"Barrier",cd:180,c1:"#ffd76b",c2:"#8a5a00",g:"B"},
+  exhaust:{name:"Exhaust",cd:240,c1:"#b9d3e6",c2:"#2c4a63",g:"E"},
+  ghost:{name:"Ghost",cd:240,c1:"#7fd4ff",c2:"#0b3f78",g:"G"},
+  cleanse:{name:"Cleanse",cd:240,c1:"#7ff0e0",c2:"#0f5e5a",g:"C"},
+  smite:{name:"Smite",cd:90,c1:"#ffe08a",c2:"#a3470a",g:"S"}
+};
+let cds = Object.fromEntries(Object.entries(DEFAULTS).map(([k,v])=>[k,v.cd]));
+const roles = [
+  {role:"TOP",spells:["flash","teleport"]},
+  {role:"JG", spells:["flash","smite"]},
+  {role:"MID",spells:["flash","ignite"]},
+  {role:"BOT",spells:["flash","heal"]},
+  {role:"SUP",spells:["flash","exhaust"]}
+];
+// timers keyed "row-slot": {endsAt, total}
+const timers = {};
+let editing=false, selected=null;
+
+function art(id){
+  const s=DEFAULTS[id];
+  return `background:radial-gradient(circle at 35% 30%, ${s.c1}, ${s.c2});`;
+}
+function glyph(id){ return `<span style="position:absolute;inset:0;display:grid;place-items:center;font:900 22px Arial;color:rgba(255,255,255,.85)">${DEFAULTS[id].g}</span>`; }
+function tile(id,key){
+  return `<div class="spell" data-key="${key}" data-id="${id}">
+    <div class="layer grey" style="${art(id)}">${glyph(id)}</div>
+    <div class="layer color" style="${art(id)}">${glyph(id)}</div>
+    <div class="time"></div></div>`;
+}
+function render(){
+  document.getElementById('rows').innerHTML = roles.map((r,i)=>
+    `<div class="row"><div class="role">${r.role}</div>${tile(r.spells[0],i+'-0')}${tile(r.spells[1],i+'-1')}</div>`).join('');
+  document.getElementById('pool').innerHTML = Object.keys(DEFAULTS).map(id=>tile(id,'pool-'+id)).join('');
+  document.getElementById('setList').innerHTML = Object.keys(DEFAULTS).map(id=>
+    `<div class="set-row">${tile(id,'set-'+id)}<label for="in-${id}">${DEFAULTS[id].name}</label>
+     <input id="in-${id}" type="number" min="1" value="${cds[id]}" data-id="${id}"></div>`).join('');
+  document.querySelectorAll('#setList input').forEach(inp=>inp.addEventListener('change',e=>{
+    const v=parseInt(e.target.value,10); if(v>0) cds[e.target.dataset.id]=v; }));
+  bind(); tick();
+}
+function fmt(s){ s=Math.ceil(s); return s>=60? `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}` : `${s}`; }
+
+function bind(){
+  document.querySelectorAll('#rows .spell').forEach(el=>{
+    let pressT, long=false;
+    const down=()=>{ long=false; pressT=setTimeout(()=>{ long=true; delete timers[el.dataset.key]; tick(); },500); };
+    const up=()=>{ clearTimeout(pressT); if(long) return;
+      const key=el.dataset.key;
+      if(editing){ selected = selected===key?null:key; highlight(); return; }
+      if(!timers[key]){ const total=cds[el.dataset.id]; timers[key]={endsAt:Date.now()+total*1000,total}; tick(); }
+    };
+    el.addEventListener('pointerdown',down);
+    el.addEventListener('pointerup',up);
+    el.addEventListener('pointerleave',()=>clearTimeout(pressT));
+    el.addEventListener('contextmenu',e=>e.preventDefault());
+  });
+  document.querySelectorAll('#pool .spell').forEach(el=>el.addEventListener('click',()=>{
+    if(!selected) return;
+    const [r,s]=selected.split('-').map(Number);
+    roles[r].spells[s]=el.dataset.id; delete timers[selected];
+    const keep=selected; render(); selected=keep; highlight();
+  }));
+}
+function highlight(){
+  document.querySelectorAll('#rows .spell').forEach(el=>el.classList.toggle('selected',el.dataset.key===selected));
+}
+function tick(){
+  const now=Date.now();
+  document.querySelectorAll('#rows .spell').forEach(el=>{
+    const t=timers[el.dataset.key], color=el.querySelector('.color'), time=el.querySelector('.time');
+    if(t){
+      const left=(t.endsAt-now)/1000;
+      if(left<=0){ delete timers[el.dataset.key]; el.classList.remove('cd'); color.style.setProperty('--p','360deg'); return; }
+      const elapsed=1-left/t.total;
+      color.style.setProperty('--p',(elapsed*360)+'deg');
+      el.classList.add('cd'); time.textContent=fmt(left);
+    } else { el.classList.remove('cd'); color.style.setProperty('--p','360deg'); }
+  });
+}
+setInterval(tick,100);
+
+document.getElementById('editBtn').onclick=()=>{
+  editing=!editing; selected=null;
+  document.getElementById('phone').classList.toggle('editing',editing);
+  document.getElementById('editBtn').classList.toggle('active',editing);
+  document.getElementById('hint').textContent = editing? 'Tap pencil again to finish editing' : 'Tap a spell to start its cooldown · long-press to reset';
+  highlight();
+};
+document.getElementById('setBtn').onclick=()=>document.getElementById('sheet').classList.add('open');
+document.getElementById('closeSheet').onclick=()=>document.getElementById('sheet').classList.remove('open');
+document.getElementById('resetDefaults').onclick=()=>{ cds=Object.fromEntries(Object.entries(DEFAULTS).map(([k,v])=>[k,v.cd])); render(); };
+render();
+</script>
+</body>
+</html>
