@@ -21,7 +21,15 @@ export type Action =
   | { type: 'tapSlot'; key: SlotKey; spell: SpellId; now: number }
   | { type: 'clearTimer'; key: SlotKey }
   | { type: 'toggleEdit' }
-  | { type: 'assignSpell'; spell: SpellId };
+  | { type: 'assignSpell'; spell: SpellId }
+  | { type: 'setCooldown'; spell: SpellId; seconds: number }
+  | { type: 'resetCooldowns' };
+
+// Longest cooldown the settings accept: an hour is far beyond any summoner spell.
+export const MAX_COOLDOWN = 3600;
+
+export const isValidCooldown = (seconds: number) =>
+  Number.isInteger(seconds) && seconds > 0 && seconds <= MAX_COOLDOWN;
 
 export const slotKey = (role: Role, slot: Slot): SlotKey => `${role}-${slot}`;
 
@@ -70,6 +78,12 @@ export function reducer(state: AppState, action: Action): AppState {
       const { [key]: _removed, ...timers } = state.timers;
       return { ...state, loadout: { ...state.loadout, [role]: spells }, timers };
     }
+    // New cooldowns apply to the next timer started; running timers keep their own `total`.
+    case 'setCooldown':
+      if (!isValidCooldown(action.seconds)) return state;
+      return { ...state, cooldowns: { ...state.cooldowns, [action.spell]: action.seconds } };
+    case 'resetCooldowns':
+      return { ...state, cooldowns: defaultCooldowns() };
   }
 }
 

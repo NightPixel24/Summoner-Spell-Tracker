@@ -1,5 +1,5 @@
 import { DEFAULT_LOADOUT } from '../data/spells';
-import { AppState, initialState, reducer } from '../state/store';
+import { AppState, initialState, MAX_COOLDOWN, reducer } from '../state/store';
 
 const NOW = 1_000_000;
 
@@ -108,5 +108,37 @@ describe('edit mode', () => {
     expect(reducer(editing, { type: 'assignSpell', spell: 'ghost' })).toBe(editing);
     const tracking = { ...initialState, selectedSlot: 'TOP-0' as const };
     expect(reducer(tracking, { type: 'assignSpell', spell: 'ghost' })).toBe(tracking);
+  });
+});
+
+describe('cooldown settings', () => {
+  it('setCooldown stores a new value for that spell only', () => {
+    const next = reducer(initialState, { type: 'setCooldown', spell: 'flash', seconds: 270 });
+    expect(next.cooldowns.flash).toBe(270);
+    expect(next.cooldowns.teleport).toBe(360);
+  });
+
+  it.each([0, -5, 12.5, NaN, MAX_COOLDOWN + 1])('setCooldown ignores invalid value %p', (seconds) => {
+    expect(reducer(initialState, { type: 'setCooldown', spell: 'flash', seconds })).toBe(initialState);
+  });
+
+  it('accepts the maximum cooldown', () => {
+    const next = reducer(initialState, { type: 'setCooldown', spell: 'smite', seconds: MAX_COOLDOWN });
+    expect(next.cooldowns.smite).toBe(MAX_COOLDOWN);
+  });
+
+  it('does not change a timer that is already running', () => {
+    let s = reducer(initialState, { type: 'tapSlot', key: 'TOP-0', spell: 'flash', now: NOW });
+    s = reducer(s, { type: 'setCooldown', spell: 'flash', seconds: 270 });
+    expect(s.timers['TOP-0']).toEqual({ endsAt: NOW + 300_000, total: 300 });
+    // ...but the next one uses the new value.
+    s = reducer(s, { type: 'tapSlot', key: 'JG-0', spell: 'flash', now: NOW });
+    expect(s.timers['JG-0']).toEqual({ endsAt: NOW + 270_000, total: 270 });
+  });
+
+  it('resetCooldowns restores every default', () => {
+    let s = reducer(initialState, { type: 'setCooldown', spell: 'flash', seconds: 270 });
+    s = reducer(s, { type: 'setCooldown', spell: 'smite', seconds: 60 });
+    expect(reducer(s, { type: 'resetCooldowns' }).cooldowns).toEqual(initialState.cooldowns);
   });
 });
