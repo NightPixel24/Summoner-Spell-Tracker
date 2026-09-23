@@ -29,13 +29,13 @@ export function PersistentStoreProvider({ children }: { children: ReactNode }) {
 
 function AutoSave() {
   const { state } = useStore();
-  const { loadout, cooldowns, timers } = state;
+  const { loadout, cooldowns, timers, timeFormat } = state;
 
   useEffect(() => {
     saveState(state);
     // Only the persisted parts matter; mode and selection changes don't need a save.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadout, cooldowns, timers]);
+  }, [loadout, cooldowns, timers, timeFormat]);
 
   return null;
 }

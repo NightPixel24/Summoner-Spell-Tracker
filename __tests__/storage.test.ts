@@ -59,6 +59,14 @@ describe('restore', () => {
   });
 });
 
+describe('restore timeFormat', () => {
+  it('keeps a saved seconds setting and ignores anything unknown', () => {
+    expect(restore({ timeFormat: 'seconds' }, NOW).timeFormat).toBe('seconds');
+    expect(restore({ timeFormat: 'hours' }, NOW).timeFormat).toBe('minutes');
+    expect(restore({}, NOW).timeFormat).toBe('minutes');
+  });
+});
+
 describe('loadState / saveState', () => {
   it('round-trips loadout, cooldowns and timers but not edit mode', async () => {
     let s = reducer(initialState, { type: 'tapSlot', key: 'TOP-0', spell: 'flash', now: NOW });

@@ -1,5 +1,5 @@
 import { createContext, Dispatch, ReactNode, useContext, useReducer } from 'react';
-import { DEFAULT_LOADOUT, Role, SPELLS, SPELL_IDS, SpellId } from '../data/spells';
+import { DEFAULT_LOADOUT, ROLES, Role, SPELLS, SPELL_IDS, SpellId } from '../data/spells';
 
 export type Slot = 0 | 1;
 export type SlotKey = `${Role}-${Slot}`;
@@ -9,10 +9,14 @@ export interface Timer {
   total: number; // seconds the timer was started with
 }
 
+// How countdowns read: minutes ("4:05") or plain seconds ("245").
+export type TimeFormat = 'minutes' | 'seconds';
+
 export interface AppState {
   loadout: Record<Role, [SpellId, SpellId]>;
   cooldowns: Record<SpellId, number>; // seconds, user-editable
   timers: Partial<Record<SlotKey, Timer>>;
+  timeFormat: TimeFormat;
   mode: 'track' | 'edit';
   selectedSlot: SlotKey | null;
 }
@@ -23,7 +27,8 @@ export type Action =
   | { type: 'toggleEdit' }
   | { type: 'assignSpell'; spell: SpellId }
   | { type: 'setCooldown'; spell: SpellId; seconds: number }
-  | { type: 'resetCooldowns' };
+  | { type: 'resetCooldowns' }
+  | { type: 'setTimeFormat'; format: TimeFormat };
 
 // Longest cooldown the settings accept: an hour is far beyond any summoner spell.
 export const MAX_COOLDOWN = 3600;
@@ -33,6 +38,12 @@ export const isValidCooldown = (seconds: number) =>
 
 export const slotKey = (role: Role, slot: Slot): SlotKey => `${role}-${slot}`;
 
+// Edit-mode order: down the first column (TOP..SUP), then down the second.
+export const SLOT_ORDER: SlotKey[] = [0, 1].flatMap((slot) => ROLES.map((role) => slotKey(role, slot as Slot)));
+
+// The slot after `key` in that order, or null once the bottom-right slot is done.
+export const nextSlot = (key: SlotKey): SlotKey | null => SLOT_ORDER[SLOT_ORDER.indexOf(key) + 1] ?? null;
+
 export const defaultCooldowns = (): Record<SpellId, number> =>
   Object.fromEntries(SPELL_IDS.map((id) => [id, SPELLS[id].cooldown])) as Record<SpellId, number>;
 
@@ -40,6 +51,7 @@ export const initialState: AppState = {
   loadout: DEFAULT_LOADOUT,
   cooldowns: defaultCooldowns(),
   timers: {},
+  timeFormat: 'minutes',
   mode: 'track',
   selectedSlot: null,
 };
@@ -68,15 +80,16 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'toggleEdit':
       return { ...state, mode: state.mode === 'edit' ? 'track' : 'edit', selectedSlot: null };
     case 'assignSpell': {
-      // Swap a pool spell into the selected slot. The slot keeps its selection so the
-      // user can try another spell, and its timer resets because it's a different spell now.
+      // Swap a pool spell into the selected slot, reset that slot's timer (it's a different
+      // spell now) and move the selection on to the next slot, so a whole loadout can be
+      // entered by tapping pool spells in a row.
       const key = state.selectedSlot;
       if (state.mode !== 'edit' || !key) return state;
       const [role, slot] = key.split('-') as [Role, `${Slot}`];
       const spells: [SpellId, SpellId] = [...state.loadout[role]];
       spells[Number(slot)] = action.spell;
       const { [key]: _removed, ...timers } = state.timers;
-      return { ...state, loadout: { ...state.loadout, [role]: spells }, timers };
+      return { ...state, loadout: { ...state.loadout, [role]: spells }, timers, selectedSlot: nextSlot(key) };
     }
     // New cooldowns apply to the next timer started; running timers keep their own `total`.
     case 'setCooldown':
@@ -84,6 +97,8 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, cooldowns: { ...state.cooldowns, [action.spell]: action.seconds } };
     case 'resetCooldowns':
       return { ...state, cooldowns: defaultCooldowns() };
+    case 'setTimeFormat':
+      return { ...state, timeFormat: action.format };
   }
 }
 

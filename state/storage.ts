@@ -5,7 +5,7 @@ import { AppState, initialState, isValidCooldown, SlotKey, Timer } from './store
 // Bump the version if the saved shape changes incompatibly; old saves are then ignored.
 export const STORAGE_KEY = 'summoner-spell-tracker:v1';
 
-export type Saved = Pick<AppState, 'loadout' | 'cooldowns' | 'timers'>;
+export type Saved = Pick<AppState, 'loadout' | 'cooldowns' | 'timers' | 'timeFormat'>;
 
 const isSpellId = (v: unknown): v is SpellId => typeof v === 'string' && v in SPELLS;
 
@@ -44,7 +44,9 @@ export function restore(raw: unknown, now: number): AppState {
     }
   }
 
-  return { ...initialState, loadout, cooldowns, timers };
+  const timeFormat = saved.timeFormat === 'seconds' ? 'seconds' : 'minutes';
+
+  return { ...initialState, loadout, cooldowns, timers, timeFormat };
 }
 
 export async function loadState(now = Date.now()): Promise<AppState> {
@@ -57,7 +59,12 @@ export async function loadState(now = Date.now()): Promise<AppState> {
 }
 
 export async function saveState(state: AppState): Promise<void> {
-  const saved: Saved = { loadout: state.loadout, cooldowns: state.cooldowns, timers: state.timers };
+  const saved: Saved = {
+    loadout: state.loadout,
+    cooldowns: state.cooldowns,
+    timers: state.timers,
+    timeFormat: state.timeFormat,
+  };
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
   } catch {

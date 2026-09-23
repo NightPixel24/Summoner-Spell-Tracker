@@ -18,7 +18,9 @@ Targets, in order: **Android** → **iOS** → **Web**. One codebase for all thr
 - State: plain React `useReducer` + context. No Redux needed.
 - Build: **EAS Build** for the Android APK/AAB and later the iOS build.
 
-## 3. Screens and UI (match `mockup.html`)
+## 3. Screens and UI
+
+> The mockup was a guide, not the final look. The app now uses a League-style dark theme (navy and Hextech gold) with larger, screen-sized tiles.
 
 Only one screen, with two overlays.
 
@@ -49,10 +51,13 @@ Only one screen, with two overlays.
 - No wiggle: tiles stay still in edit mode (the user removed the mockup's wiggle). The highlighted pencil, the pool and the hint text show you're editing.
 - The **spell pool** appears at the bottom: all 9 SR spells.
 - Tap a slot to select it (blue outline) → tap a spell in the pool to swap it in. Swapping resets that slot's timer.
+- After a spell is swapped in, the selection automatically moves to the next slot down the column, then down the second column, and clears after the bottom-right slot. *(Added by the user.)*
+- In edit mode the rows shrink so the whole screen, spell pool included, fits without scrolling. *(Added by the user.)*
 - Tap pencil again to exit. Loadout is saved to storage.
 
 ### 3.5 Settings (cog)
 - Bottom sheet / modal listing every spell with a number input for its cooldown in seconds.
+- A **Minutes / Seconds** toggle for how countdowns read (`4:05` vs `245`). *(Added by the user.)*
 - "Reset defaults" and "Done" buttons.
 - Saved to storage. New values apply to the next timer started (don't alter running ones).
 

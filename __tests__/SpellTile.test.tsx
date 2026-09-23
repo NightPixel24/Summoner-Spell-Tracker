@@ -16,6 +16,17 @@ describe('formatRemaining', () => {
   });
 });
 
+describe('formatRemaining in seconds mode', () => {
+  it.each([
+    [300, '300'],
+    [245, '245'],
+    [59.2, '60'],
+    [9.5, '10'],
+  ])('%p seconds -> %p', (seconds, expected) => {
+    expect(formatRemaining(seconds, 'seconds')).toBe(expected);
+  });
+});
+
 describe('SpellTile', () => {
   const NOW = new Date('2026-09-23T12:00:00Z').getTime();
 

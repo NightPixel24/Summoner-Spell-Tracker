@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from '@testing-library/react-native';
+import { act, render, screen, userEvent } from '@testing-library/react-native';
 import App from '../App';
 import { RIOT_DISCLAIMER } from '../components/SettingsSheet';
 
@@ -64,5 +64,35 @@ describe('Settings sheet', () => {
 
     expect(screen.getByLabelText('Flash cooldown in seconds')).toHaveDisplayValue('300');
     expect(screen.getByLabelText('Heal cooldown in seconds')).toHaveDisplayValue('240');
+  });
+
+  it('the countdown can be shown in plain seconds instead of minutes', async () => {
+    const user = await openSettings();
+    const minutes = screen.getByRole('radio', { name: 'Show minutes' });
+    const seconds = screen.getByRole('radio', { name: 'Show seconds' });
+    expect(minutes).toBeChecked();
+
+    await user.press(seconds);
+    expect(seconds).toBeChecked();
+    expect(minutes).not.toBeChecked();
+    await user.press(screen.getByRole('button', { name: 'Done' }));
+
+    await user.press(screen.getByRole('button', { name: 'TOP Flash' }));
+    expect(screen.getByText('300')).toBeOnTheScreen();
+    expect(screen.queryByText('5:00')).not.toBeOnTheScreen();
+  });
+
+  it('the seconds setting survives a restart', async () => {
+    const user = userEvent.setup();
+    const { unmount } = await render(<App />);
+    await user.press(screen.getByRole('button', { name: 'Settings' }));
+    await user.press(screen.getByRole('radio', { name: 'Show seconds' }));
+    await user.press(screen.getByRole('button', { name: 'Done' }));
+
+    await unmount();
+    await act(async () => {});
+    await render(<App />);
+    await user.press(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.getByRole('radio', { name: 'Show seconds' })).toBeChecked();
   });
 });

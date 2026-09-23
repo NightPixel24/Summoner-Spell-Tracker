@@ -3,10 +3,12 @@ import { Animated, Easing, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { ClipPath, Defs, Path } from 'react-native-svg';
 import { SPELLS, SpellId } from '../data/spells';
 import { useNow } from '../hooks/useNow';
-import { Timer } from '../state/store';
+import { TimeFormat, Timer } from '../state/store';
+import { colors, radius } from '../theme';
 import { SpellArtLayer } from './SpellArt';
 
 export const TILE_SIZE = 64;
+const BORDER = 2;
 
 interface Props {
   spell: SpellId;
@@ -14,14 +16,17 @@ interface Props {
   size?: number;
   label?: string;
   selected?: boolean; // edit mode: slot chosen for a swap
+  format?: TimeFormat;
   onPress?: () => void;
   onExpire?: () => void;
 }
 
-// m:ss at 60s and above, plain seconds below.
-export function formatRemaining(seconds: number) {
+// Minutes format: m:ss at 60s and above, plain seconds below. Seconds format: always
+// whole seconds. Rounds up, so it never shows 0 while time is left.
+export function formatRemaining(seconds: number, format: TimeFormat = 'minutes') {
   const s = Math.ceil(seconds);
-  return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}`;
+  if (format === 'seconds' || s < 60) return `${s}`;
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
 // Pie slice from 12 o'clock, clockwise, covering `fraction` of a full turn.
@@ -42,6 +47,7 @@ export default function SpellTile({
   size = TILE_SIZE,
   label,
   selected = false,
+  format = 'minutes',
   onPress,
   onExpire,
 }: Props) {
@@ -69,35 +75,39 @@ export default function SpellTile({
     ]).start();
   }, [timer, remaining, onExpire, pulse]);
 
-  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] });
+  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] });
+  const art = size - BORDER * 2; // the icon sits inside the frame's border
 
   return (
     <Animated.View style={[styles.frame, selected && styles.selected, { transform: [{ scale }] }]}>
       <Pressable
         onPress={onPress}
-        style={[styles.tile, { width: size, height: size }]}
+        style={[
+          styles.tile,
+          { width: size, height: size, borderColor: running ? colors.cooldownBorder : colors.goldDim },
+        ]}
         accessibilityRole="button"
         accessibilityLabel={label ?? SPELLS[spell].name}
         accessibilityState={{ busy: running, selected }}
       >
-        <Svg width={size} height={size}>
+        <Svg width={art} height={art}>
           {running ? (
             <>
-              <SpellArtLayer spell={spell} size={size} grey />
+              <SpellArtLayer spell={spell} size={art} grey />
               <Defs>
                 <ClipPath key={stepClipId} id={stepClipId}>
-                  <Path d={piePath(degrees / 360, size)} />
+                  <Path d={piePath(degrees / 360, art)} />
                 </ClipPath>
               </Defs>
-              <SpellArtLayer spell={spell} size={size} clipPath={`url(#${stepClipId})`} />
+              <SpellArtLayer spell={spell} size={art} clipPath={`url(#${stepClipId})`} />
             </>
           ) : (
-            <SpellArtLayer spell={spell} size={size} />
+            <SpellArtLayer spell={spell} size={art} />
           )}
         </Svg>
         {running && (
-          <Text style={[styles.time, { lineHeight: size }]} pointerEvents="none">
-            {formatRemaining(remaining)}
+          <Text style={[styles.time, { lineHeight: art, fontSize: Math.round(size * 0.27) }]} pointerEvents="none">
+            {formatRemaining(remaining, format)}
           </Text>
         )}
         <Animated.View style={[styles.flash, { opacity: pulse }]} pointerEvents="none" />
@@ -108,17 +118,19 @@ export default function SpellTile({
 
 const styles = StyleSheet.create({
   frame: {
-    borderRadius: 4,
+    borderRadius: radius.tile,
   },
   selected: {
-    outlineColor: '#2f80ed',
+    outlineColor: colors.teal,
     outlineStyle: 'solid',
     outlineWidth: 3,
     outlineOffset: 3,
   },
   tile: {
-    borderRadius: 4,
+    borderRadius: radius.tile,
+    borderWidth: BORDER,
     overflow: 'hidden',
+    backgroundColor: colors.surfaceRaised,
   },
   flash: {
     position: 'absolute',
@@ -126,7 +138,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.55)',
+    backgroundColor: 'rgba(240,230,210,0.6)',
   },
   time: {
     position: 'absolute',
@@ -136,11 +148,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     textAlign: 'center',
     textAlignVertical: 'center',
-    fontSize: 20,
     fontWeight: '900',
-    color: '#000',
-    textShadowColor: '#fff',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
+    color: '#fff',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+    fontVariant: ['tabular-nums'],
   },
 });

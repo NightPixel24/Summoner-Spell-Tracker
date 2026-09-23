@@ -1,5 +1,5 @@
 import { DEFAULT_LOADOUT } from '../data/spells';
-import { AppState, initialState, MAX_COOLDOWN, reducer } from '../state/store';
+import { AppState, initialState, MAX_COOLDOWN, nextSlot, reducer, SLOT_ORDER } from '../state/store';
 
 const NOW = 1_000_000;
 
@@ -86,12 +86,32 @@ describe('edit mode', () => {
     expect(none.selectedSlot).toBeNull();
   });
 
-  it('assignSpell swaps the spell into the selected slot and keeps it selected', () => {
+  it('assignSpell swaps the spell into the selected slot and moves to the next one down', () => {
     const selected = reducer(editing, { type: 'tapSlot', key: 'TOP-1', spell: 'teleport', now: NOW });
     const next = reducer(selected, { type: 'assignSpell', spell: 'ignite' });
     expect(next.loadout.TOP).toEqual(['flash', 'ignite']);
     expect(next.loadout.MID).toEqual(DEFAULT_LOADOUT.MID);
-    expect(next.selectedSlot).toBe('TOP-1');
+    expect(next.selectedSlot).toBe('JG-1');
+  });
+
+  it('auto-advance goes down the first column, then down the second, then stops', () => {
+    expect(SLOT_ORDER).toEqual(['TOP-0', 'JG-0', 'MID-0', 'BOT-0', 'SUP-0', 'TOP-1', 'JG-1', 'MID-1', 'BOT-1', 'SUP-1']);
+    let s = reducer(editing, { type: 'tapSlot', key: 'TOP-0', spell: 'flash', now: NOW });
+    const picks = ['ghost', 'smite', 'barrier', 'heal', 'exhaust', 'teleport', 'flash', 'ignite', 'cleanse', 'flash'] as const;
+    for (const [i, spell] of picks.entries()) {
+      expect(s.selectedSlot).toBe(SLOT_ORDER[i]);
+      s = reducer(s, { type: 'assignSpell', spell });
+    }
+    expect(s.selectedSlot).toBeNull(); // done after the bottom-right slot
+    expect(s.loadout).toEqual({
+      TOP: ['ghost', 'teleport'],
+      JG: ['smite', 'flash'],
+      MID: ['barrier', 'ignite'],
+      BOT: ['heal', 'cleanse'],
+      SUP: ['exhaust', 'flash'],
+    });
+    expect(nextSlot('SUP-0')).toBe('TOP-1');
+    expect(nextSlot('SUP-1')).toBeNull();
   });
 
   it('assignSpell resets the swapped slot timer but leaves other timers running', () => {
@@ -140,5 +160,14 @@ describe('cooldown settings', () => {
     let s = reducer(initialState, { type: 'setCooldown', spell: 'flash', seconds: 270 });
     s = reducer(s, { type: 'setCooldown', spell: 'smite', seconds: 60 });
     expect(reducer(s, { type: 'resetCooldowns' }).cooldowns).toEqual(initialState.cooldowns);
+  });
+});
+
+describe('time format', () => {
+  it('defaults to minutes and can switch to seconds and back', () => {
+    expect(initialState.timeFormat).toBe('minutes');
+    const secs = reducer(initialState, { type: 'setTimeFormat', format: 'seconds' });
+    expect(secs.timeFormat).toBe('seconds');
+    expect(reducer(secs, { type: 'setTimeFormat', format: 'minutes' }).timeFormat).toBe('minutes');
   });
 });
