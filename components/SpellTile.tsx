@@ -7,14 +7,12 @@ import { Timer } from '../state/store';
 import { SpellArtLayer } from './SpellArt';
 
 export const TILE_SIZE = 64;
-const LONG_PRESS_MS = 500;
 
 interface Props {
   spell: SpellId;
   timer?: Timer;
   size?: number;
   onPress?: () => void;
-  onLongPress?: () => void;
   onExpire?: () => void;
 }
 
@@ -36,7 +34,7 @@ function piePath(fraction: number, size: number) {
   return `M ${c} ${c} L ${c} ${c - r} A ${r} ${r} 0 ${largeArc} 1 ${x} ${y} Z`;
 }
 
-export default function SpellTile({ spell, timer, size = TILE_SIZE, onPress, onLongPress, onExpire }: Props) {
+export default function SpellTile({ spell, timer, size = TILE_SIZE, onPress, onExpire }: Props) {
   const now = useNow(!!timer);
   const clipId = 'c' + useId().replace(/[^a-zA-Z0-9]/g, '');
 
@@ -55,8 +53,6 @@ export default function SpellTile({ spell, timer, size = TILE_SIZE, onPress, onL
   return (
     <Pressable
       onPress={onPress}
-      onLongPress={onLongPress}
-      delayLongPress={LONG_PRESS_MS}
       style={[styles.tile, { width: size, height: size }]}
       accessibilityRole="button"
       accessibilityState={{ busy: running }}

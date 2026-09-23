@@ -16,7 +16,7 @@ export default function App() {
             {ROLES.map((role) => (
               <RoleRow key={role} role={role} />
             ))}
-            <Text style={styles.hint}>Tap a spell to start its cooldown · long-press to reset</Text>
+            <Text style={styles.hint}>Tap a spell to start its cooldown · tap again to reset</Text>
           </View>
           <StatusBar style="dark" />
         </SafeAreaView>

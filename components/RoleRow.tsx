@@ -19,8 +19,7 @@ export default function RoleRow({ role }: { role: Role }) {
             key={key}
             spell={spell}
             timer={state.timers[key]}
-            onPress={() => dispatch({ type: 'startTimer', key, spell, now: Date.now() })}
-            onLongPress={() => dispatch({ type: 'clearTimer', key })}
+            onPress={() => dispatch({ type: 'tapSlot', key, spell, now: Date.now() })}
             onExpire={() => dispatch({ type: 'clearTimer', key })}
           />
         );

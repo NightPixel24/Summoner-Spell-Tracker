@@ -41,8 +41,7 @@ Only one screen, with two overlays.
 
 ### 3.3 Interactions
 - **Tap a ready tile** → start that spell's cooldown.
-- **Tap a tile already on cooldown** → nothing (prevents accidental resets).
-- **Long-press (~500ms) a tile on cooldown** → reset to ready (for misclicks).
+- **Tap a tile already on cooldown** → reset to ready (for misclicks). *(Changed from the original long-press reset: the user prefers a single tap.)*
 - Timers must be based on a stored `endsAt` timestamp, **not** a decrementing counter, so they stay correct if the app is backgrounded or the phone locks.
 
 ### 3.4 Edit mode (pencil)
@@ -118,7 +117,7 @@ assets/spells/*.png
 
 1. **Scaffold** — `npx create-expo-app` with TypeScript, run on Android emulator and web.
 2. **Static layout** — header, 5 rows, placeholder tiles. Match the mockup.
-3. **SpellTile + timer** — grey layer, clockwise colour sweep (SVG), black countdown, `endsAt`-based ticking (~10fps is plenty), long-press reset.
+3. **SpellTile + timer** — grey layer, clockwise colour sweep (SVG), black countdown, `endsAt`-based ticking (~10fps is plenty), tap-again reset.
 4. **Edit mode** — pencil toggle, wiggle, spell pool, select-then-swap.
 5. **Settings sheet** — editable cooldowns, reset defaults.
 6. **Persistence** — AsyncStorage for loadout, cooldowns and timers.
@@ -130,7 +129,7 @@ assets/spells/*.png
 ## 7. Acceptance checks
 - Tapping a tile greys it, the sweep runs clockwise from 12 o'clock, and the black number counts down accurately.
 - Locking the phone for 60s and returning shows the correct remaining time.
-- Tapping a running timer does nothing; long-press resets it.
+- Tapping a running timer resets it to ready.
 - Edit mode swaps a spell and the new loadout survives an app restart.
 - Changing Flash to 270s in Settings makes the next Flash timer 4:30.
 - Works offline.

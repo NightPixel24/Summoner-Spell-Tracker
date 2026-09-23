@@ -18,7 +18,7 @@ export interface AppState {
 }
 
 export type Action =
-  | { type: 'startTimer'; key: SlotKey; spell: SpellId; now: number }
+  | { type: 'tapSlot'; key: SlotKey; spell: SpellId; now: number }
   | { type: 'clearTimer'; key: SlotKey };
 
 export const slotKey = (role: Role, slot: Slot): SlotKey => `${role}-${slot}`;
@@ -36,8 +36,10 @@ export const initialState: AppState = {
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
-    case 'startTimer': {
-      if (state.timers[action.key]) return state; // never restart a running timer
+    case 'tapSlot': {
+      // Tap toggles: a running timer resets to ready, a ready slot starts its cooldown.
+      const running = state.timers[action.key];
+      if (running && running.endsAt > action.now) return reducer(state, { type: 'clearTimer', key: action.key });
       const total = state.cooldowns[action.spell];
       return {
         ...state,
