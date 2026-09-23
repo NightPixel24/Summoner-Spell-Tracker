@@ -27,12 +27,12 @@ Only one screen, with two overlays.
 ### 3.1 Main tracker (default mode)
 - Header: "SUMMONER / SPELL TRACKER" (bold, two lines, left) + **pencil** and **cog** icons (right).
 - 5 rows: role label (TOP, JG, MID, BOT, SUP) + 2 square spell tiles (~64dp, big enough to hit mid-game).
-- Default loadout:
-  - TOP: Flash, Teleport
+- Default loadout (updated by the user):
+  - TOP: Flash, Ghost, Teleport (TOP has a **third slot** for the extra spell from the top lane quest)
   - JG: Flash, Smite
   - MID: Flash, Ignite
-  - BOT: Flash, Heal
-  - SUP: Flash, Exhaust
+  - BOT: Flash, Barrier
+  - SUP: Flash, Heal
 
 ### 3.2 Tile states
 | State | Look |
@@ -44,6 +44,7 @@ Only one screen, with two overlays.
 ### 3.3 Interactions
 - **Tap a ready tile** → start that spell's cooldown.
 - **Tap a tile already on cooldown** → reset to ready (for misclicks). *(Changed from the original long-press reset: the user prefers a single tap.)*
+- **Hold a Teleport tile** to switch it to **Unleashed Teleport** (its own icon and cooldown, default 330s); hold again to switch back.
 - Timers must be based on a stored `endsAt` timestamp, **not** a decrementing counter, so they stay correct if the app is backgrounded or the phone locks.
 
 ### 3.4 Edit mode (pencil)
@@ -141,6 +142,6 @@ assets/spells/*.png
 
 ## 8. Later / nice-to-have (not v1)
 - **Summoner spell haste** toggles per role (Ionian Boots of Lucidity, Cosmic Insight rune) that shorten that row's cooldowns. Formula: `cd × 100 / (100 + haste)`.
-- Unleashed Teleport switch-over after the upgrade time.
+- Automatic Unleashed Teleport switch-over at 10:00 (manual hold-to-switch is done).
 - "Copy timers" button that puts a chat-ready string on the clipboard, e.g. `TOP flash 12:45 MID ignite 11:10` (needs a game-clock input).
 - Dark mode.

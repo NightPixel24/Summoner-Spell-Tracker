@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ROLES, SPELLS, SpellId } from '../data/spells';
-import { AppState, defaultCooldowns, initialState, isValidCooldown, SlotKey, Timer } from './store';
+import { ROLES, SLOTS_PER_ROLE, SPELLS, SpellId } from '../data/spells';
+import { AppState, defaultCooldowns, initialState, isValidCooldown, SlotKey, slotsFor, Timer } from './store';
 
 // Bump the version if the saved shape changes incompatibly; old saves are then ignored.
 export const STORAGE_KEY = 'summoner-spell-tracker:v1';
@@ -16,8 +16,12 @@ export function restore(raw: unknown, now: number): AppState {
 
   const loadout = { ...initialState.loadout };
   for (const role of ROLES) {
-    const pair = saved.loadout?.[role];
-    if (Array.isArray(pair) && pair.length === 2 && pair.every(isSpellId)) loadout[role] = [pair[0], pair[1]];
+    const spells = saved.loadout?.[role];
+    if (!Array.isArray(spells) || !spells.every(isSpellId)) continue;
+    const want = SLOTS_PER_ROLE[role];
+    if (spells.length === want) loadout[role] = [...spells];
+    // A two-spell save from before TOP gained its third slot keeps both; the new slot gets its default.
+    else if (spells.length === 2 && want > 2) loadout[role] = [...spells, ...initialState.loadout[role].slice(spells.length)];
   }
 
   const cooldowns = { ...initialState.cooldowns };
@@ -28,7 +32,7 @@ export function restore(raw: unknown, now: number): AppState {
   // Keep timers that are still running; ones that finished while the app was closed are dropped.
   const timers: Partial<Record<SlotKey, Timer>> = {};
   for (const role of ROLES) {
-    for (const slot of [0, 1] as const) {
+    for (const slot of slotsFor(role)) {
       const key: SlotKey = `${role}-${slot}`;
       const t = saved.timers?.[key];
       if (

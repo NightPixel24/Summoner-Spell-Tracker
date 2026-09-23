@@ -18,11 +18,11 @@ describe('Tracker screen', () => {
     expect(screen.getByText('Spell Tracker')).toBeOnTheScreen();
     expect(screen.getByText('Jungle')).toBeOnTheScreen();
     for (const label of [
-      'TOP Flash', 'TOP Teleport',
+      'TOP Flash', 'TOP Ghost', 'TOP Teleport',
       'JG Flash', 'JG Smite',
       'MID Flash', 'MID Ignite',
-      'BOT Flash', 'BOT Heal',
-      'SUP Flash', 'SUP Exhaust',
+      'BOT Flash', 'BOT Barrier',
+      'SUP Flash', 'SUP Heal',
     ]) {
       expect(screen.getByRole('button', { name: label })).toBeOnTheScreen();
     }
@@ -75,14 +75,14 @@ describe('Tracker screen', () => {
     expect(screen.getByText('Tap the pencil again to finish editing')).toBeOnTheScreen();
 
     // Tapping a slot selects it, it doesn't start a timer.
-    const teleport = screen.getByRole('button', { name: 'TOP Teleport' });
-    await user.press(teleport);
-    expect(teleport).toBeSelected();
-    expect(teleport).not.toBeBusy();
+    const ghost = screen.getByRole('button', { name: 'TOP Ghost' });
+    await user.press(ghost);
+    expect(ghost).toBeSelected();
+    expect(ghost).not.toBeBusy();
     expect(screen.getByText('Tap a spell to swap it into the highlighted slot.')).toBeOnTheScreen();
 
     await user.press(screen.getByRole('button', { name: 'Swap in Ignite' }));
-    expect(screen.queryByRole('button', { name: 'TOP Teleport' })).not.toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'TOP Ghost' })).not.toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'TOP Ignite' })).not.toBeSelected();
     // Selection moves down the column, ready for the next pick.
     expect(screen.getByRole('button', { name: 'JG Smite' })).toBeSelected();
@@ -99,15 +99,15 @@ describe('Tracker screen', () => {
   it('swapping a spell resets a running timer on that slot', async () => {
     const user = userEvent.setup();
     await render(<App />);
-    await user.press(screen.getByRole('button', { name: 'BOT Heal' }));
-    expect(screen.getByText('4:00')).toBeOnTheScreen();
+    await user.press(screen.getByRole('button', { name: 'BOT Barrier' }));
+    expect(screen.getByText('3:00')).toBeOnTheScreen();
 
     await user.press(screen.getByRole('button', { name: 'Edit spells' }));
-    await user.press(screen.getByRole('button', { name: 'BOT Heal' }));
-    await user.press(screen.getByRole('button', { name: 'Swap in Barrier' }));
+    await user.press(screen.getByRole('button', { name: 'BOT Barrier' }));
+    await user.press(screen.getByRole('button', { name: 'Swap in Heal' }));
 
-    expect(screen.getByRole('button', { name: 'BOT Barrier' })).not.toBeBusy();
-    expect(screen.queryByText('4:00')).not.toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'BOT Heal' })).not.toBeBusy();
+    expect(screen.queryByText('3:00')).not.toBeOnTheScreen();
   });
 });
 

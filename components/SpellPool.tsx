@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { SPELLS, SPELL_IDS } from '../data/spells';
+import { POOL_SPELL_IDS, SPELLS } from '../data/spells';
 import { POOL_GAP, POOL_PADDING, poolTileFor, useContentWidth } from '../hooks/useLayout';
 import { tapFeedback } from '../lib/feedback';
 import { useStore } from '../state/store';
@@ -18,7 +18,7 @@ export default function SpellPool() {
         {state.selectedSlot ? 'Tap a spell to swap it into the highlighted slot.' : 'Tap a slot above, then a spell here to swap it in.'}
       </Text>
       <View style={styles.grid}>
-        {SPELL_IDS.map((spell) => (
+        {POOL_SPELL_IDS.map((spell) => (
           <View key={spell} style={styles.item}>
             <SpellTile
               spell={spell}

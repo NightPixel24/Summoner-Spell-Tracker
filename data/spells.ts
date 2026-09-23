@@ -14,7 +14,8 @@ export type SpellId =
   | 'exhaust'
   | 'ghost'
   | 'cleanse'
-  | 'smite';
+  | 'smite'
+  | 'unleashedTeleport';
 
 export type Role = 'TOP' | 'JG' | 'MID' | 'BOT' | 'SUP';
 
@@ -91,16 +92,39 @@ export const SPELLS: Record<SpellId, Spell> = {
     icon: require('../assets/spells/smite.png'),
     iconGrey: require('../assets/spells/smite-grey.png'),
   },
+  // Teleport upgrades to this at 10:00. Its cooldown drops from 330s at level 1 to 240s
+  // at level 18; 330 is the default and users can change it in Settings.
+  unleashedTeleport: {
+    id: 'unleashedTeleport',
+    name: 'Unleashed Teleport',
+    cooldown: 330,
+    icon: require('../assets/spells/unleashedTeleport.png'),
+    iconGrey: require('../assets/spells/unleashedTeleport-grey.png'),
+  },
 };
 
+// Every spell, including in-game upgrades (Settings lists all of them).
 export const SPELL_IDS = Object.keys(SPELLS) as SpellId[];
+
+// The nine Summoner's Rift spells a player can pick, shown in the edit-mode pool.
+// Unleashed Teleport isn't here: you get it by holding a Teleport tile.
+export const POOL_SPELL_IDS = SPELL_IDS.filter((id) => id !== 'unleashedTeleport');
+
+// Holding a tile swaps between these (Teleport <-> Unleashed Teleport).
+export const UPGRADES: Partial<Record<SpellId, SpellId>> = {
+  teleport: 'unleashedTeleport',
+  unleashedTeleport: 'teleport',
+};
 
 export const ROLES: Role[] = ['TOP', 'JG', 'MID', 'BOT', 'SUP'];
 
-export const DEFAULT_LOADOUT: Record<Role, [SpellId, SpellId]> = {
-  TOP: ['flash', 'teleport'],
+// TOP has a third slot (for the extra spell the top lane quest can give); the other roles have two.
+export const SLOTS_PER_ROLE: Record<Role, number> = { TOP: 3, JG: 2, MID: 2, BOT: 2, SUP: 2 };
+
+export const DEFAULT_LOADOUT: Record<Role, SpellId[]> = {
+  TOP: ['flash', 'ghost', 'teleport'],
   JG: ['flash', 'smite'],
   MID: ['flash', 'ignite'],
-  BOT: ['flash', 'heal'],
-  SUP: ['flash', 'exhaust'],
+  BOT: ['flash', 'barrier'],
+  SUP: ['flash', 'heal'],
 };

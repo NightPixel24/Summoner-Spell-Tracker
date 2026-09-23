@@ -89,29 +89,34 @@ describe('edit mode', () => {
   it('assignSpell swaps the spell into the selected slot and moves to the next one down', () => {
     const selected = reducer(editing, { type: 'tapSlot', key: 'TOP-1', spell: 'teleport', now: NOW });
     const next = reducer(selected, { type: 'assignSpell', spell: 'ignite' });
-    expect(next.loadout.TOP).toEqual(['flash', 'ignite']);
+    expect(next.loadout.TOP).toEqual(['flash', 'ignite', 'teleport']);
     expect(next.loadout.MID).toEqual(DEFAULT_LOADOUT.MID);
     expect(next.selectedSlot).toBe('JG-1');
   });
 
-  it('auto-advance goes down the first column, then down the second, then stops', () => {
-    expect(SLOT_ORDER).toEqual(['TOP-0', 'JG-0', 'MID-0', 'BOT-0', 'SUP-0', 'TOP-1', 'JG-1', 'MID-1', 'BOT-1', 'SUP-1']);
+  it("auto-advance goes down the first column, then the second, then TOP's third slot, then stops", () => {
+    expect(SLOT_ORDER).toEqual([
+      'TOP-0', 'JG-0', 'MID-0', 'BOT-0', 'SUP-0',
+      'TOP-1', 'JG-1', 'MID-1', 'BOT-1', 'SUP-1',
+      'TOP-2',
+    ]);
     let s = reducer(editing, { type: 'tapSlot', key: 'TOP-0', spell: 'flash', now: NOW });
-    const picks = ['ghost', 'smite', 'barrier', 'heal', 'exhaust', 'teleport', 'flash', 'ignite', 'cleanse', 'flash'] as const;
+    const picks = ['ghost', 'smite', 'barrier', 'heal', 'exhaust', 'teleport', 'flash', 'ignite', 'cleanse', 'flash', 'barrier'] as const;
     for (const [i, spell] of picks.entries()) {
       expect(s.selectedSlot).toBe(SLOT_ORDER[i]);
       s = reducer(s, { type: 'assignSpell', spell });
     }
-    expect(s.selectedSlot).toBeNull(); // done after the bottom-right slot
+    expect(s.selectedSlot).toBeNull(); // done after the last slot
     expect(s.loadout).toEqual({
-      TOP: ['ghost', 'teleport'],
+      TOP: ['ghost', 'teleport', 'barrier'],
       JG: ['smite', 'flash'],
       MID: ['barrier', 'ignite'],
       BOT: ['heal', 'cleanse'],
       SUP: ['exhaust', 'flash'],
     });
     expect(nextSlot('SUP-0')).toBe('TOP-1');
-    expect(nextSlot('SUP-1')).toBeNull();
+    expect(nextSlot('SUP-1')).toBe('TOP-2');
+    expect(nextSlot('TOP-2')).toBeNull();
   });
 
   it('assignSpell resets the swapped slot timer but leaves other timers running', () => {
@@ -169,5 +174,29 @@ describe('time format', () => {
     const secs = reducer(initialState, { type: 'setTimeFormat', format: 'seconds' });
     expect(secs.timeFormat).toBe('seconds');
     expect(reducer(secs, { type: 'setTimeFormat', format: 'minutes' }).timeFormat).toBe('minutes');
+  });
+});
+
+describe('holding a Teleport tile (upgradeSlot)', () => {
+  it('turns Teleport into Unleashed Teleport and back', () => {
+    const up = reducer(initialState, { type: 'upgradeSlot', key: 'TOP-2' });
+    expect(up.loadout.TOP).toEqual(['flash', 'ghost', 'unleashedTeleport']);
+    const down = reducer(up, { type: 'upgradeSlot', key: 'TOP-2' });
+    expect(down.loadout.TOP).toEqual(['flash', 'ghost', 'teleport']);
+  });
+
+  it('does nothing to spells without an upgrade, or in edit mode', () => {
+    expect(reducer(initialState, { type: 'upgradeSlot', key: 'TOP-0' })).toBe(initialState);
+    const editing = reducer(initialState, { type: 'toggleEdit' });
+    expect(reducer(editing, { type: 'upgradeSlot', key: 'TOP-2' })).toBe(editing);
+  });
+
+  it("keeps a running timer, and the next timer uses Unleashed Teleport's cooldown", () => {
+    let s = reducer(initialState, { type: 'tapSlot', key: 'TOP-2', spell: 'teleport', now: NOW });
+    s = reducer(s, { type: 'upgradeSlot', key: 'TOP-2' });
+    expect(s.timers['TOP-2']).toEqual({ endsAt: NOW + 300_000, total: 300 });
+    s = reducer(s, { type: 'clearTimer', key: 'TOP-2' });
+    s = reducer(s, { type: 'tapSlot', key: 'TOP-2', spell: 'unleashedTeleport', now: NOW });
+    expect(s.timers['TOP-2']).toEqual({ endsAt: NOW + 330_000, total: 330 });
   });
 });

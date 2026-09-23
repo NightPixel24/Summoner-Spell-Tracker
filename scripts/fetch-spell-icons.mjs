@@ -26,6 +26,12 @@ const SPELLS = {
   smite: 'SummonerSmite',
 };
 
+// Spells that only exist in-game, so Data Dragon has no entry for them. Their icons come
+// from CommunityDragon's mirror of the game files instead.
+const GAME_FILE_ICONS = {
+  unleashedTeleport: 'https://raw.communitydragon.org/latest/game/data/spells/icons2d/unleashed_teleport_new.png',
+};
+
 // Same look as the mockup's CSS: grayscale(1) brightness(.55).
 const GREY_BRIGHTNESS = 0.55;
 
@@ -65,5 +71,13 @@ for (const [id, ddId] of Object.entries(SPELLS)) {
   console.log(`${id.padEnd(10)} ${String(spell.cooldown[0]).padEnd(13)} ${spell.image.full}`);
 }
 
+for (const [id, url] of Object.entries(GAME_FILE_ICONS)) {
+  const png = Buffer.from(await (await get(url)).arrayBuffer());
+  await writeFile(join(outDir, `${id}.png`), png);
+  await writeFile(join(outDir, `${id}-grey.png`), greyscale(png));
+  console.log(`${id} (game file: ${url.split('/').pop()})`);
+}
+
 await writeFile(join(outDir, 'VERSION'), `${version}\n`);
-console.log(`\nSaved ${Object.keys(SPELLS).length * 2} icons to assets/spells/`);
+const total = Object.keys(SPELLS).length + Object.keys(GAME_FILE_ICONS).length;
+console.log(`\nSaved ${total * 2} icons to assets/spells/`);

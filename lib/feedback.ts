@@ -10,6 +10,9 @@ function buzz(run: () => Promise<void>) {
 // A spell was tapped (timer started or reset, or a slot picked in edit mode).
 export const tapFeedback = () => buzz(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
 
+// A tile was held to change it (Teleport <-> Unleashed Teleport).
+export const holdFeedback = () => buzz(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium));
+
 // A cooldown finished and the spell is back up.
 export const readyFeedback = () =>
   buzz(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));

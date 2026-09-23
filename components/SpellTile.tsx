@@ -18,6 +18,7 @@ interface Props {
   selected?: boolean; // edit mode: slot chosen for a swap
   format?: TimeFormat;
   onPress?: () => void;
+  onLongPress?: () => void;
   onExpire?: () => void;
 }
 
@@ -49,6 +50,7 @@ export default function SpellTile({
   selected = false,
   format = 'minutes',
   onPress,
+  onLongPress,
   onExpire,
 }: Props) {
   const now = useNow(!!timer);
@@ -82,6 +84,8 @@ export default function SpellTile({
     <Animated.View style={[styles.frame, selected && styles.selected, { transform: [{ scale }] }]}>
       <Pressable
         onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={450}
         style={[
           styles.tile,
           { width: size, height: size, borderColor: running ? colors.cooldownBorder : colors.goldDim },

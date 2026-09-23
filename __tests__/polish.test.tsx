@@ -38,8 +38,8 @@ describe('Haptics, ready feedback and keep-awake', () => {
     const user = userEvent.setup();
     await render(<App />);
     await user.press(screen.getByRole('button', { name: 'JG Smite' }));
-    await user.press(screen.getByRole('button', { name: 'BOT Heal' }));
-    await user.press(screen.getByRole('button', { name: 'BOT Heal' })); // reset: no "ready" buzz
+    await user.press(screen.getByRole('button', { name: 'SUP Heal' }));
+    await user.press(screen.getByRole('button', { name: 'SUP Heal' })); // reset: no "ready" buzz
 
     await act(async () => {
       jest.advanceTimersByTime(89_000);

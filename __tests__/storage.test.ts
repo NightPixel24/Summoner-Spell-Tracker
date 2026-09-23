@@ -14,16 +14,26 @@ describe('restore', () => {
 
   it('keeps a valid saved loadout, cooldowns and running timers', () => {
     const saved = {
-      loadout: { ...DEFAULT_LOADOUT, TOP: ['ghost', 'ignite'] },
+      loadout: { ...DEFAULT_LOADOUT, TOP: ['ghost', 'ignite', 'unleashedTeleport'] },
       cooldowns: { ...initialState.cooldowns, flash: 270 },
       timers: { 'MID-0': { endsAt: NOW + 100_000, total: 300 } },
     };
     const state = restore(saved, NOW);
-    expect(state.loadout.TOP).toEqual(['ghost', 'ignite']);
+    expect(state.loadout.TOP).toEqual(['ghost', 'ignite', 'unleashedTeleport']);
     expect(state.cooldowns.flash).toBe(270);
     expect(state.timers).toEqual({ 'MID-0': { endsAt: NOW + 100_000, total: 300 } });
     expect(state.mode).toBe('track');
     expect(state.selectedSlot).toBeNull();
+  });
+
+  it('gives an old two-slot TOP save the default third slot', () => {
+    const state = restore({ loadout: { TOP: ['exhaust', 'ignite'] } }, NOW);
+    expect(state.loadout.TOP).toEqual(['exhaust', 'ignite', DEFAULT_LOADOUT.TOP[2]]);
+  });
+
+  it("restores a timer on TOP's third slot, but not on a slot other roles don't have", () => {
+    const saved = { timers: { 'TOP-2': { endsAt: NOW + 60_000, total: 300 }, 'JG-2': { endsAt: NOW + 60_000, total: 300 } } };
+    expect(restore(saved, NOW).timers).toEqual({ 'TOP-2': { endsAt: NOW + 60_000, total: 300 } });
   });
 
   it('drops timers that finished while the app was closed', () => {

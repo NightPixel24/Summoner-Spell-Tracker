@@ -26,8 +26,8 @@ describe('Saved state across restarts', () => {
     const { unmount } = await render(<App />);
 
     await user.press(screen.getByRole('button', { name: 'Edit spells' }));
-    await user.press(screen.getByRole('button', { name: 'TOP Teleport' }));
-    await user.press(screen.getByRole('button', { name: 'Swap in Ghost' }));
+    await user.press(screen.getByRole('button', { name: 'TOP Ghost' }));
+    await user.press(screen.getByRole('button', { name: 'Swap in Cleanse' }));
     await user.press(screen.getByRole('button', { name: 'Edit spells' }));
 
     await user.press(screen.getByRole('button', { name: 'Settings' }));
@@ -36,8 +36,8 @@ describe('Saved state across restarts', () => {
 
     await restartApp(unmount);
 
-    expect(screen.getByRole('button', { name: 'TOP Ghost' })).toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'TOP Teleport' })).not.toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'TOP Cleanse' })).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'TOP Ghost' })).not.toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Edit spells' })).not.toBeSelected(); // edit mode isn't saved
 
     await user.press(screen.getByRole('button', { name: 'MID Flash' }));
@@ -75,11 +75,11 @@ describe('Saved state across restarts', () => {
   it('a reset timer stays reset after a restart', async () => {
     const user = userEvent.setup();
     const { unmount } = await render(<App />);
-    const heal = screen.getByRole('button', { name: 'BOT Heal' });
+    const heal = screen.getByRole('button', { name: 'SUP Heal' });
     await user.press(heal);
     await user.press(heal);
 
     await restartApp(unmount);
-    expect(screen.getByRole('button', { name: 'BOT Heal' })).not.toBeBusy();
+    expect(screen.getByRole('button', { name: 'SUP Heal' })).not.toBeBusy();
   });
 });
