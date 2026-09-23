@@ -25,7 +25,7 @@ describe('spell data', () => {
 
   it('uses the agreed default loadout, with a third slot for TOP only', () => {
     expect(DEFAULT_LOADOUT).toEqual({
-      TOP: ['flash', 'ghost', 'teleport'],
+      TOP: ['flash', 'ghost', 'unleashedTeleport'],
       JG: ['flash', 'smite'],
       MID: ['flash', 'ignite'],
       BOT: ['flash', 'barrier'],

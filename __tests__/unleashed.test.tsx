@@ -11,27 +11,31 @@ describe('Holding Teleport to switch to Unleashed Teleport', () => {
     jest.useRealTimers();
   });
 
-  it('TOP has a third slot', async () => {
+  it('TOP has a third slot, which starts as Unleashed Teleport', async () => {
     await render(<App />);
     expect(screen.getByRole('button', { name: 'TOP Flash' })).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'TOP Ghost' })).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'TOP Teleport' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'TOP Unleashed Teleport' })).toBeOnTheScreen();
   });
 
-  it('holding Teleport turns it into Unleashed Teleport with its own cooldown, and holding again turns it back', async () => {
+  it('holding switches between Unleashed Teleport and Teleport, each with its own cooldown', async () => {
     const user = userEvent.setup();
     await render(<App />);
 
-    await user.longPress(screen.getByRole('button', { name: 'TOP Teleport' }));
     const unleashed = screen.getByRole('button', { name: 'TOP Unleashed Teleport' });
-    expect(unleashed).not.toBeBusy(); // a hold changes the spell, it doesn't start a timer
-
     await user.press(unleashed);
     expect(screen.getByText('5:30')).toBeOnTheScreen(); // 330s
-
     await user.press(unleashed); // reset
+
     await user.longPress(unleashed);
-    expect(screen.getByRole('button', { name: 'TOP Teleport' })).toBeOnTheScreen();
+    const teleport = screen.getByRole('button', { name: 'TOP Teleport' });
+    expect(teleport).not.toBeBusy(); // a hold changes the spell, it doesn't start a timer
+    await user.press(teleport);
+    expect(screen.getByText('5:00')).toBeOnTheScreen(); // 300s
+    await user.press(teleport); // reset
+
+    await user.longPress(teleport);
+    expect(screen.getByRole('button', { name: 'TOP Unleashed Teleport' })).toBeOnTheScreen();
   });
 
   it('holding a spell without an upgrade just counts as a tap', async () => {
@@ -45,8 +49,8 @@ describe('Holding Teleport to switch to Unleashed Teleport', () => {
     const user = userEvent.setup();
     await render(<App />);
     await user.press(screen.getByRole('button', { name: 'Edit spells' }));
-    await user.longPress(screen.getByRole('button', { name: 'TOP Teleport' }));
-    expect(screen.getByRole('button', { name: 'TOP Teleport' })).toBeOnTheScreen();
+    await user.longPress(screen.getByRole('button', { name: 'TOP Unleashed Teleport' }));
+    expect(screen.getByRole('button', { name: 'TOP Unleashed Teleport' })).toBeOnTheScreen();
   });
 
   it('Unleashed Teleport is not in the spell pool but is in Settings', async () => {

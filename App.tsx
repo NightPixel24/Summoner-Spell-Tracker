@@ -8,12 +8,13 @@ import Header from './components/Header';
 import RoleRow from './components/RoleRow';
 import SettingsSheet from './components/SettingsSheet';
 import SpellPool from './components/SpellPool';
-import { ROLES } from './data/spells';
+import { ROLES, SLOTS_PER_ROLE } from './data/spells';
 import {
   MAX_CONTENT_WIDTH,
   ROW_PADDING,
   ROW_PADDING_COMPACT,
   SCREEN_PADDING,
+  rowTileSize,
   tileSizeFor,
   useContentWidth,
 } from './hooks/useLayout';
@@ -57,7 +58,9 @@ function Tracker() {
   const contentWidth = useContentWidth();
   const rowPadding = editing ? ROW_PADDING_COMPACT : ROW_PADDING;
   const rowsHeight = viewport - SCREEN_PADDING * 2 - header - hint - (editing ? pool : 0);
-  const tile = tileSizeFor(contentWidth, rowsHeight, rowPadding);
+  // One size for every tile, small enough that the widest row (TOP, three tiles) fits.
+  const widestRow = Math.max(...ROLES.map((role) => SLOTS_PER_ROLE[role]));
+  const tile = rowTileSize(tileSizeFor(contentWidth, rowsHeight, rowPadding), contentWidth, widestRow, rowPadding);
 
   return (
     <ScrollView contentContainerStyle={styles.screen} onLayout={measure(setViewport)}>

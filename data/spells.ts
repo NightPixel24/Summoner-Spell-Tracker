@@ -122,7 +122,7 @@ export const ROLES: Role[] = ['TOP', 'JG', 'MID', 'BOT', 'SUP'];
 export const SLOTS_PER_ROLE: Record<Role, number> = { TOP: 3, JG: 2, MID: 2, BOT: 2, SUP: 2 };
 
 export const DEFAULT_LOADOUT: Record<Role, SpellId[]> = {
-  TOP: ['flash', 'ghost', 'teleport'],
+  TOP: ['flash', 'ghost', 'unleashedTeleport'],
   JG: ['flash', 'smite'],
   MID: ['flash', 'ignite'],
   BOT: ['flash', 'barrier'],

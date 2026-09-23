@@ -28,7 +28,7 @@ Only one screen, with two overlays.
 - Header: "SUMMONER / SPELL TRACKER" (bold, two lines, left) + **pencil** and **cog** icons (right).
 - 5 rows: role label (TOP, JG, MID, BOT, SUP) + 2 square spell tiles (~64dp, big enough to hit mid-game).
 - Default loadout (updated by the user):
-  - TOP: Flash, Ghost, Teleport (TOP has a **third slot** for the extra spell from the top lane quest)
+  - TOP: Flash, Ghost, Unleashed Teleport (TOP has a **third slot** for the extra spell from the top lane quest)
   - JG: Flash, Smite
   - MID: Flash, Ignite
   - BOT: Flash, Barrier

@@ -89,7 +89,7 @@ describe('edit mode', () => {
   it('assignSpell swaps the spell into the selected slot and moves to the next one down', () => {
     const selected = reducer(editing, { type: 'tapSlot', key: 'TOP-1', spell: 'teleport', now: NOW });
     const next = reducer(selected, { type: 'assignSpell', spell: 'ignite' });
-    expect(next.loadout.TOP).toEqual(['flash', 'ignite', 'teleport']);
+    expect(next.loadout.TOP).toEqual(['flash', 'ignite', 'unleashedTeleport']);
     expect(next.loadout.MID).toEqual(DEFAULT_LOADOUT.MID);
     expect(next.selectedSlot).toBe('JG-1');
   });
@@ -178,11 +178,12 @@ describe('time format', () => {
 });
 
 describe('holding a Teleport tile (upgradeSlot)', () => {
-  it('turns Teleport into Unleashed Teleport and back', () => {
-    const up = reducer(initialState, { type: 'upgradeSlot', key: 'TOP-2' });
-    expect(up.loadout.TOP).toEqual(['flash', 'ghost', 'unleashedTeleport']);
-    const down = reducer(up, { type: 'upgradeSlot', key: 'TOP-2' });
+  it('switches between Unleashed Teleport (the TOP default) and Teleport', () => {
+    expect(initialState.loadout.TOP[2]).toBe('unleashedTeleport');
+    const down = reducer(initialState, { type: 'upgradeSlot', key: 'TOP-2' });
     expect(down.loadout.TOP).toEqual(['flash', 'ghost', 'teleport']);
+    const up = reducer(down, { type: 'upgradeSlot', key: 'TOP-2' });
+    expect(up.loadout.TOP).toEqual(['flash', 'ghost', 'unleashedTeleport']);
   });
 
   it('does nothing to spells without an upgrade, or in edit mode', () => {

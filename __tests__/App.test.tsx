@@ -1,6 +1,6 @@
 import { act, render, screen, userEvent } from '@testing-library/react-native';
 import App from '../App';
-import { contentWidthFor, poolTileFor, ROW_GAP, ROW_PADDING_COMPACT, tileSizeFor } from '../hooks/useLayout';
+import { contentWidthFor, poolTileFor, ROW_GAP, ROW_PADDING_COMPACT, rowTileSize, tileSizeFor } from '../hooks/useLayout';
 
 describe('Tracker screen', () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe('Tracker screen', () => {
     expect(screen.getByText('Spell Tracker')).toBeOnTheScreen();
     expect(screen.getByText('Jungle')).toBeOnTheScreen();
     for (const label of [
-      'TOP Flash', 'TOP Ghost', 'TOP Teleport',
+      'TOP Flash', 'TOP Ghost', 'TOP Unleashed Teleport',
       'JG Flash', 'JG Smite',
       'MID Flash', 'MID Ignite',
       'BOT Flash', 'BOT Barrier',
@@ -139,5 +139,11 @@ describe('tile sizing', () => {
 
   it('pool tiles fit five to a row', () => {
     expect(poolTileFor(width) * 5 + 10 * 4 + 14 * 2).toBeLessThanOrEqual(width);
+  });
+
+  it('every row uses the same tile size, capped so TOP’s three tiles fit', () => {
+    const tile = rowTileSize(tileSizeFor(width, 870 - 80 - 34 - 32), width, 3, 12);
+    expect(tile * 3 + 14 * 2 + 72 + 12 * 2).toBeLessThanOrEqual(width);
+    expect(tile).toBeGreaterThanOrEqual(80);
   });
 });
