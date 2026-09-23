@@ -10,6 +10,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.nightpixel.summonerspelltracker",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#13233B",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -32,6 +34,12 @@
       "expo-font",
       "expo-asset"
     ],
-    "backgroundColor": "#0a1320"
+    "backgroundColor": "#0a1320",
+    "extra": {
+      "eas": {
+        "projectId": "4403ad64-1b11-4af4-a0bc-403e92d5be7d"
+      }
+    },
+    "owner": "nightpixel"
   }
 }
