@@ -201,3 +201,16 @@ describe('holding a Teleport tile (upgradeSlot)', () => {
     expect(s.timers['TOP-2']).toEqual({ endsAt: NOW + 330_000, total: 330 });
   });
 });
+
+describe('resetLoadout', () => {
+  it('restores the default loadout and clears timers and selection', () => {
+    let s = reducer(initialState, { type: 'tapSlot', key: 'MID-1', spell: 'ignite', now: NOW });
+    s = reducer(s, { type: 'toggleEdit' });
+    s = reducer(s, { type: 'tapSlot', key: 'TOP-2', spell: 'unleashedTeleport', now: NOW });
+    s = reducer(s, { type: 'assignSpell', spell: 'cleanse' });
+    s = reducer(s, { type: 'resetLoadout' });
+    expect(s.loadout).toEqual(DEFAULT_LOADOUT);
+    expect(s.timers).toEqual({});
+    expect(s.selectedSlot).toBeNull();
+  });
+});

@@ -56,11 +56,11 @@ describe('Settings sheet', () => {
     expect(screen.getByText('5:00')).toBeOnTheScreen();
   });
 
-  it('Reset defaults puts every value back', async () => {
+  it('Reset cooldowns puts every value back', async () => {
     const user = await openSettings();
     await user.type(screen.getByLabelText('Flash cooldown in seconds'), '270');
     await user.type(screen.getByLabelText('Heal cooldown in seconds'), '200');
-    await user.press(screen.getByRole('button', { name: 'Reset defaults' }));
+    await user.press(screen.getByRole('button', { name: 'Reset cooldowns' }));
 
     expect(screen.getByLabelText('Flash cooldown in seconds')).toHaveDisplayValue('300');
     expect(screen.getByLabelText('Heal cooldown in seconds')).toHaveDisplayValue('240');
@@ -94,5 +94,23 @@ describe('Settings sheet', () => {
     await render(<App />);
     await user.press(screen.getByRole('button', { name: 'Settings' }));
     expect(screen.getByRole('radio', { name: 'Show seconds' })).toBeChecked();
+  });
+
+  it('Reset loadout puts every role back to the default spells and clears timers', async () => {
+    const user = userEvent.setup();
+    await render(<App />);
+    await user.press(screen.getByRole('button', { name: 'Edit spells' }));
+    await user.press(screen.getByRole('button', { name: 'TOP Unleashed Teleport' }));
+    await user.press(screen.getByRole('button', { name: 'Swap in Teleport' }));
+    await user.press(screen.getByRole('button', { name: 'Edit spells' }));
+    await user.press(screen.getByRole('button', { name: 'JG Smite' }));
+    expect(screen.getByRole('button', { name: 'TOP Teleport' })).toBeOnTheScreen();
+
+    await user.press(screen.getByRole('button', { name: 'Settings' }));
+    await user.press(screen.getByRole('button', { name: 'Reset loadout' }));
+    await user.press(screen.getByRole('button', { name: 'Done' }));
+
+    expect(screen.getByRole('button', { name: 'TOP Unleashed Teleport' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'JG Smite' })).not.toBeBusy();
   });
 });

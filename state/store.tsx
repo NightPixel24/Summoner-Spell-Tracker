@@ -29,6 +29,7 @@ export type Action =
   | { type: 'assignSpell'; spell: SpellId }
   | { type: 'setCooldown'; spell: SpellId; seconds: number }
   | { type: 'resetCooldowns' }
+  | { type: 'resetLoadout' }
   | { type: 'setTimeFormat'; format: TimeFormat };
 
 // Longest cooldown the settings accept: an hour is far beyond any summoner spell.
@@ -114,6 +115,10 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, cooldowns: { ...state.cooldowns, [action.spell]: action.seconds } };
     case 'resetCooldowns':
       return { ...state, cooldowns: defaultCooldowns() };
+    // Back to the default spells for every role. Timers are cleared too, since most
+    // slots may now hold a different spell.
+    case 'resetLoadout':
+      return { ...state, loadout: DEFAULT_LOADOUT, timers: {}, selectedSlot: null };
     case 'setTimeFormat':
       return { ...state, timeFormat: action.format };
   }

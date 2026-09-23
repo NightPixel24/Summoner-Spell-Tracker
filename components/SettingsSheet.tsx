@@ -67,6 +67,16 @@ export default function SettingsSheet({ visible, onClose }: Props) {
               })}
             </View>
 
+            <Text style={styles.section}>Loadout</Text>
+            <Text style={styles.sub}>Put every role back to its default spells. This also clears running timers.</Text>
+            <Pressable
+              style={[styles.button, styles.ghost]}
+              onPress={() => dispatch({ type: 'resetLoadout' })}
+              accessibilityRole="button"
+            >
+              <Text style={styles.ghostText}>Reset loadout</Text>
+            </Pressable>
+
             <Text style={styles.section}>Cooldowns (seconds)</Text>
             <Text style={styles.sub}>Summoner's Rift only. Changes apply to the next timer you start.</Text>
 
@@ -85,7 +95,7 @@ export default function SettingsSheet({ visible, onClose }: Props) {
                 onPress={() => dispatch({ type: 'resetCooldowns' })}
                 accessibilityRole="button"
               >
-                <Text style={styles.ghostText}>Reset defaults</Text>
+                <Text style={styles.ghostText}>Reset cooldowns</Text>
               </Pressable>
               <Pressable style={[styles.button, styles.primary]} onPress={onClose} accessibilityRole="button">
                 <Text style={styles.primaryText}>Done</Text>
@@ -115,7 +125,7 @@ function CooldownRow({ spell, value, onChange }: { spell: SpellId; value: number
     return () => sub.remove();
   }, []);
 
-  // Follow the stored value when it changes elsewhere (e.g. Reset defaults), but never
+  // Follow the stored value when it changes elsewhere (e.g. Reset cooldowns), but never
   // while the user is typing: writing it back mid-edit drops keystrokes on Android.
   useEffect(() => {
     if (!focused.current) setText(String(value));
