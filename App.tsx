@@ -7,18 +7,19 @@ import RoleRow from './components/RoleRow';
 import SettingsSheet from './components/SettingsSheet';
 import SpellPool from './components/SpellPool';
 import { ROLES } from './data/spells';
-import { StoreProvider, useStore } from './state/store';
+import { PersistentStoreProvider } from './state/PersistentStore';
+import { useStore } from './state/store';
 
 export default function App() {
   return (
-    <StoreProvider>
+    <PersistentStoreProvider>
       <SafeAreaProvider>
         <SafeAreaView style={styles.safe}>
           <Tracker />
           <StatusBar style="dark" />
         </SafeAreaView>
       </SafeAreaProvider>
-    </StoreProvider>
+    </PersistentStoreProvider>
   );
 }
 

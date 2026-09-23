@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.24",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
@@ -34,7 +35,7 @@
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|react-native-svg|react-native-safe-area-context)"
     ],
-    "setupFiles": [
+    "setupFilesAfterEnv": [
       "./jest.setup.ts"
     ]
   }

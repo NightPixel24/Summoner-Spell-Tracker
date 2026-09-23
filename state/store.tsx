@@ -89,8 +89,8 @@ export function reducer(state: AppState, action: Action): AppState {
 
 const StoreContext = createContext<{ state: AppState; dispatch: Dispatch<Action> } | null>(null);
 
-export function StoreProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+export function StoreProvider({ children, initial = initialState }: { children: ReactNode; initial?: AppState }) {
+  const [state, dispatch] = useReducer(reducer, initial);
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 
