@@ -23,6 +23,17 @@ describe('Haptics, ready feedback and keep-awake', () => {
     jest.useRealTimers();
   });
 
+  it("doesn't buzz on the Settings buttons", async () => {
+    const user = userEvent.setup();
+    await render(<App />);
+    await user.press(screen.getByRole('button', { name: 'Settings' }));
+    jest.mocked(Haptics.impactAsync).mockClear();
+    for (const name of ['Reset loadout', 'Reset cooldowns', 'Done']) {
+      await user.press(screen.getByRole('button', { name }));
+    }
+    expect(Haptics.impactAsync).not.toHaveBeenCalled();
+  });
+
   it('buzzes lightly on every tile tap', async () => {
     const user = userEvent.setup();
     await render(<App />);

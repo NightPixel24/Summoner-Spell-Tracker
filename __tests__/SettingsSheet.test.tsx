@@ -1,6 +1,6 @@
 import { act, render, screen, userEvent } from '@testing-library/react-native';
 import App from '../App';
-import { RIOT_DISCLAIMER } from '../components/SettingsSheet';
+import { HIGHLIGHT_MS, RIOT_DISCLAIMER } from '../components/SettingsSheet';
 
 async function openSettings() {
   const user = userEvent.setup();
@@ -112,5 +112,20 @@ describe('Settings sheet', () => {
 
     expect(screen.getByRole('button', { name: 'TOP Unleashed Teleport' })).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'JG Smite' })).not.toBeBusy();
+  });
+
+  it('the reset buttons stay highlighted for a moment after being pressed, with no label change', async () => {
+    const user = await openSettings();
+    const reset = screen.getByRole('button', { name: 'Reset loadout' });
+    expect(reset).not.toHaveStyle({ borderColor: '#c8aa6e' });
+
+    await user.press(reset);
+    expect(reset).toHaveStyle({ borderColor: '#c8aa6e' });
+    expect(screen.getByRole('button', { name: 'Reset loadout' })).toHaveTextContent('Reset loadout');
+
+    await act(async () => {
+      jest.advanceTimersByTime(HIGHLIGHT_MS);
+    });
+    expect(reset).not.toHaveStyle({ borderColor: '#c8aa6e' });
   });
 });

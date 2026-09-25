@@ -69,13 +69,11 @@ export default function SettingsSheet({ visible, onClose }: Props) {
 
             <Text style={styles.section}>Loadout</Text>
             <Text style={styles.sub}>Put every role back to its default spells. This also clears running timers.</Text>
-            <Pressable
-              style={[styles.button, styles.ghost]}
+            <SheetButton
+              label="Reset loadout"
+              lingers
               onPress={() => dispatch({ type: 'resetLoadout' })}
-              accessibilityRole="button"
-            >
-              <Text style={styles.ghostText}>Reset loadout</Text>
-            </Pressable>
+            />
 
             <Text style={styles.section}>Cooldowns (seconds)</Text>
             <Text style={styles.sub}>Summoner's Rift only. Changes apply to the next timer you start.</Text>
@@ -90,16 +88,12 @@ export default function SettingsSheet({ visible, onClose }: Props) {
             ))}
 
             <View style={styles.actions}>
-              <Pressable
-                style={[styles.button, styles.ghost]}
+              <SheetButton
+                label="Reset cooldowns"
+                lingers
                 onPress={() => dispatch({ type: 'resetCooldowns' })}
-                accessibilityRole="button"
-              >
-                <Text style={styles.ghostText}>Reset cooldowns</Text>
-              </Pressable>
-              <Pressable style={[styles.button, styles.primary]} onPress={onClose} accessibilityRole="button">
-                <Text style={styles.primaryText}>Done</Text>
-              </Pressable>
+              />
+              <SheetButton label="Done" primary onPress={onClose} />
             </View>
 
             <Text style={styles.disclaimer}>{RIOT_DISCLAIMER}</Text>
@@ -107,6 +101,49 @@ export default function SettingsSheet({ visible, onClose }: Props) {
         </View>
       </KeyboardAvoidingView>
     </Modal>
+  );
+}
+
+export const HIGHLIGHT_MS = 80;
+
+// A settings button that visibly reacts: it lights up while pressed (no haptics, by the
+// user's choice). A reset button stays lit for a moment after a quick tap, because what it
+// changes is hidden behind the sheet.
+function SheetButton({
+  label,
+  lingers,
+  primary,
+  onPress,
+}: {
+  label: string;
+  lingers?: boolean;
+  primary?: boolean;
+  onPress: () => void;
+}) {
+  const [lit, setLit] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.button,
+        primary ? styles.primary : styles.ghost,
+        (pressed || lit) && (primary ? styles.primaryPressed : styles.ghostPressed),
+        pressed && styles.pressed,
+      ]}
+      onPress={() => {
+        onPress();
+        if (lingers) {
+          setLit(true);
+          clearTimeout(timer.current);
+          timer.current = setTimeout(() => setLit(false), HIGHLIGHT_MS);
+        }
+      }}
+      accessibilityRole="button"
+    >
+      <Text style={primary ? styles.primaryText : styles.ghostText}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -292,6 +329,16 @@ const styles = StyleSheet.create({
   },
   primary: {
     backgroundColor: colors.gold,
+  },
+  primaryPressed: {
+    backgroundColor: colors.goldBright,
+  },
+  ghostPressed: {
+    backgroundColor: 'rgba(200,170,110,0.18)',
+    borderColor: colors.gold,
+  },
+  pressed: {
+    transform: [{ scale: 0.97 }],
   },
   primaryText: {
     color: colors.bg,
