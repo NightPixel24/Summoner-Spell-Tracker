@@ -70,7 +70,7 @@ npx eas-cli build --platform android --profile preview
 Other scripts:
 
 - `node scripts/fetch-spell-icons.mjs` downloads the spell icons for the latest patch and prints Riot's current cooldowns.
-- `node scripts/make-app-icons.mjs` redraws the app icon and splash image.
+- `node scripts/make-app-icons.mjs` rebuilds the app icon, splash image and favicon from `assets/brand/logo.png`.
 
 Project layout: `App.tsx` (the screen), `components/` (tiles, rows, spell pool, settings), `state/` (reducer and saving), `data/spells.ts` (spells, cooldowns, default loadout), `__tests__/`.
 

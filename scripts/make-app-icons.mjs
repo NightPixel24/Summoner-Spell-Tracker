@@ -1,78 +1,110 @@
-// Draws the app icon, Android adaptive icon layers, splash image and favicon:
-// a cooldown clock like the tiles use, gold swept 3/4 of the way round from 12 o'clock,
-// with the last quarter still grey. Rerun after changing the colours or shape.
+// Builds the app icon, Android adaptive icon, splash image and favicon from the logo
+// artwork in assets/brand/logo.png. Rerun after replacing the logo.
 //
 //   node scripts/make-app-icons.mjs
+//
+// The logo is a gold stopwatch on a near-black navy background. Where the icon needs a
+// transparent background (adaptive foreground, splash), the clock face is kept whole and
+// the background around it is keyed out by colour, which keeps the gold glow soft.
 
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PNG } from 'pngjs';
 
-export const NAVY = [0x13, 0x23, 0x3b];
-const GOLD = [0xe0, 0xa9, 0x3b];
-const GREY = [0x5b, 0x65, 0x73];
-const WHITE = [0xff, 0xff, 0xff];
-const SWEEP = 0.75; // fraction of the clock that has "come back"
-const SS = 4; // supersampling per axis, for smooth edges
-
 const assets = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets');
+const logo = PNG.sync.read(await readFile(join(assets, 'brand', 'logo.png')));
+const W = logo.width;
+const H = logo.height;
 
-// Colour + alpha of the clock at (x, y), in a unit square centred on the clock.
-// r is the clock radius as a fraction of the canvas.
-function clock(x, y, r, mono) {
-  const dx = x - 0.5;
-  const dy = y - 0.5;
-  const d = Math.hypot(dx, dy);
-  const ring = r * 0.09;
-  if (d > r) return null;
-  if (d > r - ring) return [...WHITE, 1]; // outer ring
-  if (d < r * 0.11) return mono ? null : [...WHITE, 1]; // centre hub
-  // Angle clockwise from 12 o'clock, 0..1.
-  const turn = ((Math.atan2(dx, -dy) / (2 * Math.PI)) + 1) % 1;
-  if (turn <= SWEEP) return mono ? [...WHITE, 1] : [...GOLD, 1];
-  return mono ? [...WHITE, 0.35] : [...GREY, 1];
+// Measured from the artwork: its background colour, the clock face (kept opaque), and the
+// bounding box of everything drawn (stopwatch crown to the foot of the L).
+const BG = [5, 14, 23];
+const FACE = { x: 0.5 * W, y: 0.5 * H, r: 0.43 * W };
+const BOX = { x0: 54, y0: 10, x1: 824, y1: 826 };
+
+// Bilinear sample of the logo at a fractional source position, as [r, g, b].
+function sample(x, y) {
+  const cx = Math.min(W - 1, Math.max(0, x - 0.5));
+  const cy = Math.min(H - 1, Math.max(0, y - 0.5));
+  const x0 = Math.floor(cx);
+  const y0 = Math.floor(cy);
+  const x1 = Math.min(W - 1, x0 + 1);
+  const y1 = Math.min(H - 1, y0 + 1);
+  const fx = cx - x0;
+  const fy = cy - y0;
+  const px = (xx, yy, k) => logo.data[(yy * W + xx) * 4 + k];
+  return [0, 1, 2].map(
+    (k) =>
+      px(x0, y0, k) * (1 - fx) * (1 - fy) +
+      px(x1, y0, k) * fx * (1 - fy) +
+      px(x0, y1, k) * (1 - fx) * fy +
+      px(x1, y1, k) * fx * fy,
+  );
 }
 
-function render(size, { r, bg = null, mono = false }) {
+// The logo at a source position with its background removed, as [r, g, b, alpha].
+function cutout(x, y) {
+  const c = sample(x, y);
+  if (Math.hypot(x - FACE.x, y - FACE.y) < FACE.r) return [...c, 1];
+  const diff = Math.max(...c.map((v, k) => Math.abs(v - BG[k])));
+  const a = Math.min(1, Math.max(0, (diff - 6) / 40));
+  if (a === 0) return [0, 0, 0, 0];
+  // Un-mix the background so the edge colour stays gold rather than going dark.
+  return [...c.map((v, k) => Math.min(255, Math.max(0, (v - BG[k] * (1 - a)) / a))), a];
+}
+
+// Render a size x size image. The logo's point
+// (cx, cy) lands in the middle and `scale` is output pixels per logo pixel.
+function render(size, { cx, cy, scale, transparent }) {
   const png = new PNG({ width: size, height: size });
+  const ss = Math.max(2, Math.ceil(2 / scale)); // enough samples per axis when shrinking
   for (let py = 0; py < size; py++) {
     for (let px = 0; px < size; px++) {
-      let [cr, cg, cb, ca] = [0, 0, 0, 0];
-      for (let sy = 0; sy < SS; sy++) {
-        for (let sx = 0; sx < SS; sx++) {
-          const x = (px + (sx + 0.5) / SS) / size;
-          const y = (py + (sy + 0.5) / SS) / size;
-          let c = clock(x, y, r, mono);
-          if (!c && bg) c = [...bg, 1];
-          if (!c) continue;
+      let [r, g, b, a] = [0, 0, 0, 0];
+      for (let sy = 0; sy < ss; sy++) {
+        for (let sx = 0; sx < ss; sx++) {
+          const x = cx + (px + (sx + 0.5) / ss - size / 2) / scale;
+          const y = cy + (py + (sy + 0.5) / ss - size / 2) / scale;
+          const inside = x >= 0 && y >= 0 && x < W && y < H;
+          let c;
+          if (transparent) c = inside ? cutout(x, y) : [0, 0, 0, 0];
+          else c = inside ? [...sample(x, y), 1] : [...BG, 1];
           // Premultiplied accumulation so edges blend correctly.
-          cr += c[0] * c[3];
-          cg += c[1] * c[3];
-          cb += c[2] * c[3];
-          ca += c[3];
+          r += c[0] * c[3];
+          g += c[1] * c[3];
+          b += c[2] * c[3];
+          a += c[3];
         }
       }
       const i = (py * size + px) * 4;
-      const n = SS * SS;
-      png.data[i] = ca ? Math.round(cr / ca) : 0;
-      png.data[i + 1] = ca ? Math.round(cg / ca) : 0;
-      png.data[i + 2] = ca ? Math.round(cb / ca) : 0;
-      png.data[i + 3] = Math.round((ca / n) * 255);
+      png.data[i] = a ? Math.round(r / a) : 0;
+      png.data[i + 1] = a ? Math.round(g / a) : 0;
+      png.data[i + 2] = a ? Math.round(b / a) : 0;
+      png.data[i + 3] = Math.round((a / (ss * ss)) * 255);
     }
   }
   return PNG.sync.write(png);
 }
 
+// Fit the drawn part of the logo into `fraction` of the canvas, centred.
+const fit = (size, fraction) => ({
+  cx: (BOX.x0 + BOX.x1) / 2,
+  cy: (BOX.y0 + BOX.y1) / 2,
+  scale: (size * fraction) / Math.max(BOX.x1 - BOX.x0, BOX.y1 - BOX.y0),
+});
+// The whole square artwork, background included.
+const full = (size) => ({ cx: W / 2, cy: H / 2, scale: size / W });
+
 const outputs = {
-  // iOS / legacy / store icon: square, opaque, no rounded corners.
-  'icon.png': render(1024, { r: 0.36, bg: NAVY }),
-  // Android adaptive layers: the launcher masks to ~66% in the middle, so keep the clock inside that.
-  'android-icon-foreground.png': render(1024, { r: 0.27 }),
-  'android-icon-monochrome.png': render(1024, { r: 0.27, mono: true }),
-  // Splash: transparent, shown on the navy splash background.
-  'splash-icon.png': render(1024, { r: 0.46 }),
-  'favicon.png': render(48, { r: 0.44, bg: NAVY }),
+  // iOS / legacy / store icon: square and opaque, the artwork as drawn.
+  'icon.png': render(1024, full(1024)),
+  // Android adaptive foreground: only a 66/108 circle in the middle is sure to show (round
+  // launchers), and the L's bottom corner reaches furthest out, so the logo is kept small.
+  'android-icon-foreground.png': render(1024, { ...fit(1024, 0.53), transparent: true }),
+  // Splash: transparent, shown on the app's background colour.
+  'splash-icon.png': render(1024, { ...fit(1024, 0.96), transparent: true }),
+  'favicon.png': render(48, full(48)),
 };
 
 for (const [name, png] of Object.entries(outputs)) {

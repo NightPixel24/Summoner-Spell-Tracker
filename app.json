@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Summoner Spell Tracker",
+    "name": "Spell Tracker",
     "slug": "summoner-spell-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,9 +13,8 @@
       "package": "com.nightpixel.summonerspelltracker",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#13233B",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#0a1320",
+        "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "blockedPermissions": [
@@ -32,7 +31,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#13233B",
+          "backgroundColor": "#0a1320",
           "image": "./assets/splash-icon.png",
           "imageWidth": 200
         }
