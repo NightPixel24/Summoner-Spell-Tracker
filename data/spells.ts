@@ -22,6 +22,7 @@ export type Role = 'TOP' | 'JG' | 'MID' | 'BOT' | 'SUP';
 export interface Spell {
   id: SpellId;
   name: string;
+  shortName?: string; // caption under the small spell-pool tile, when the name is too long
   cooldown: number; // seconds
   // Official Data Dragon icon, plus a greyed-out copy for the cooldown state.
   icon: ImageSourcePropType;
@@ -97,6 +98,7 @@ export const SPELLS: Record<SpellId, Spell> = {
   unleashedTeleport: {
     id: 'unleashedTeleport',
     name: 'Unleashed Teleport',
+    shortName: 'Unleashed TP',
     cooldown: 330,
     icon: require('../assets/spells/unleashedTeleport.png'),
     iconGrey: require('../assets/spells/unleashedTeleport-grey.png'),
@@ -106,9 +108,9 @@ export const SPELLS: Record<SpellId, Spell> = {
 // Every spell, including in-game upgrades (Settings lists all of them).
 export const SPELL_IDS = Object.keys(SPELLS) as SpellId[];
 
-// The nine Summoner's Rift spells a player can pick, shown in the edit-mode pool.
-// Unleashed Teleport isn't here: you get it by holding a Teleport tile.
-export const POOL_SPELL_IDS = SPELL_IDS.filter((id) => id !== 'unleashedTeleport');
+// The edit-mode pool: the nine Summoner's Rift spells, then Unleashed Teleport in the last
+// spot (it can also be reached by holding a Teleport tile).
+export const POOL_SPELL_IDS: SpellId[] = [...SPELL_IDS.filter((id) => id !== 'unleashedTeleport'), 'unleashedTeleport'];
 
 // Holding a tile swaps between these (Teleport <-> Unleashed Teleport).
 export const UPGRADES: Partial<Record<SpellId, SpellId>> = {

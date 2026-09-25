@@ -53,11 +53,18 @@ describe('Holding Teleport to switch to Unleashed Teleport', () => {
     expect(screen.getByRole('button', { name: 'TOP Unleashed Teleport' })).toBeOnTheScreen();
   });
 
-  it('Unleashed Teleport is not in the spell pool but is in Settings', async () => {
+  it('Unleashed Teleport is the last spell in the pool, can be swapped in, and is in Settings', async () => {
     const user = userEvent.setup();
     await render(<App />);
     await user.press(screen.getByRole('button', { name: 'Edit spells' }));
-    expect(screen.queryByRole('button', { name: 'Swap in Unleashed Teleport' })).not.toBeOnTheScreen();
+    const pool = screen.getAllByRole('button', { name: /^Swap in / });
+    expect(pool).toHaveLength(10);
+    expect(pool[9]).toHaveAccessibleName('Swap in Unleashed Teleport');
+    expect(screen.getByText('Unleashed TP')).toBeOnTheScreen();
+
+    await user.press(screen.getByRole('button', { name: 'MID Ignite' }));
+    await user.press(pool[9]);
+    expect(screen.getByRole('button', { name: 'MID Unleashed Teleport' })).toBeOnTheScreen();
     await user.press(screen.getByRole('button', { name: 'Edit spells' }));
 
     await user.press(screen.getByRole('button', { name: 'Settings' }));

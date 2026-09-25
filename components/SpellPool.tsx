@@ -30,7 +30,7 @@ export default function SpellPool() {
               }}
             />
             <Text style={styles.name} numberOfLines={1}>
-              {SPELLS[spell].name}
+              {SPELLS[spell].shortName ?? SPELLS[spell].name}
             </Text>
           </View>
         ))}

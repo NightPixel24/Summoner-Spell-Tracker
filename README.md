@@ -26,7 +26,7 @@ The app works fully offline and doesn't use the internet at all. The only permis
 |---|---|
 | **Tap** a spell | Starts its cooldown. Tap it again to reset it (for mis-taps). |
 | **Hold** a Teleport tile | Switches it to Unleashed Teleport (after 10:00), and back. |
-| **Pencil** | Edit mode: tap a slot, then a spell from the pool to swap it in. The selection moves down the column automatically, so you can set a whole loadout in a few taps. |
+| **Pencil** | Edit mode: tap a slot, then a spell from the pool to swap it in (Unleashed Teleport is the last one). The selection moves down the column automatically, so you can set a whole loadout in a few taps. |
 | **Cog** | Settings: countdown in minutes (`4:05`) or seconds (`245`), reset your loadout, and change any spell's cooldown. |
 
 - **TOP has a third slot** for the extra spell the top lane quest can give.

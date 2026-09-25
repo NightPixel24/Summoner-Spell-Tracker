@@ -2,8 +2,8 @@ import { DEFAULT_LOADOUT, POOL_SPELL_IDS, ROLES, SLOTS_PER_ROLE, SPELLS, SPELL_I
 
 describe('spell data', () => {
   it("has the nine pickable Summoner's Rift spells plus Unleashed Teleport, each with a cooldown and both icons", () => {
-    expect(POOL_SPELL_IDS).toHaveLength(9);
-    expect(POOL_SPELL_IDS).not.toContain('unleashedTeleport');
+    expect(POOL_SPELL_IDS).toHaveLength(10);
+    expect(POOL_SPELL_IDS[9]).toBe('unleashedTeleport');
     expect(SPELL_IDS).toHaveLength(10);
     for (const id of SPELL_IDS) {
       const spell = SPELLS[id];
