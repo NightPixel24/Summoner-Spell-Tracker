@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
+  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -32,20 +34,54 @@ export const RIOT_DISCLAIMER =
   'or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated ' +
   'properties are trademarks or registered trademarks of Riot Games, Inc.';
 
+// Let go after a long enough pull, or a quick flick, and the sheet closes.
+export const DISMISS_DISTANCE = 100;
+export const shouldDismiss = (dy: number, vy: number) => dy > DISMISS_DISTANCE || (dy > 20 && vy > 0.8);
+
 export default function SettingsSheet({ visible, onClose }: Props) {
   const { state, dispatch } = useStore();
   const insets = useSafeAreaInsets();
+  const drag = useRef(new Animated.Value(0)).current;
+  const close = useRef(onClose);
+  close.current = onClose;
+
+  useEffect(() => {
+    if (visible) drag.setValue(0);
+  }, [visible, drag]);
+
+  // Swipe down on the top of the sheet (grabber and title) to close it. The list below can't
+  // take part: Android's ScrollView claims every vertical drag and cancels a JS gesture.
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderMove: (_, g) => drag.setValue(Math.max(0, g.dy)),
+      onPanResponderRelease: (_, g) => {
+        if (shouldDismiss(g.dy, g.vy)) {
+          Keyboard.dismiss();
+          Animated.timing(drag, { toValue: 1000, duration: 180, useNativeDriver: true }).start(() => close.current());
+        } else {
+          Animated.spring(drag, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+        }
+      },
+      onPanResponderTerminate: () => Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(),
+    }),
+  ).current;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close settings" />
-        <View style={[styles.sheet, { paddingBottom: 18 + insets.bottom }]}>
-          <View style={styles.grabber} />
-          <ScrollView keyboardShouldPersistTaps="handled">
+        <Animated.View
+          style={[styles.sheet, { paddingBottom: 18 + insets.bottom, transform: [{ translateY: drag }] }]}
+        >
+          <View {...pan.panHandlers}>
+            <View style={styles.grabber} />
             <Text style={styles.title} accessibilityRole="header">
               Settings
             </Text>
+          </View>
+          <ScrollView keyboardShouldPersistTaps="handled">
 
             <Text style={styles.section}>Countdown display</Text>
             <View style={styles.segment} accessibilityRole="radiogroup">
@@ -98,7 +134,7 @@ export default function SettingsSheet({ visible, onClose }: Props) {
 
             <Text style={styles.disclaimer}>{RIOT_DISCLAIMER}</Text>
           </ScrollView>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
